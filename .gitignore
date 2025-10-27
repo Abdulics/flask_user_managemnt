@@ -1,0 +1,99 @@
+# ===============================
+# Python / Flask Project Gitignore
+# ===============================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+venv.bak/
+
+# Environment variables / Secrets
+.env
+*.env
+
+# Flask instance folder (for local files like uploads, etc.)
+instance/
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyInstaller
+*.spec
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.swp
+*.bak
+*.tmp
+*.old
+*.orig
+
+# Local data / cache / uploads
+uploads/
+temp/
+tmp/
+.cache/
+
+# Ignore compiled HTML or generated static content
+app/static/css/*.map
+app/static/js/*.map
+
+# Ignore main config and secrets
+config.json
+secrets.json
+
+# Ignore local testing scripts or scratch files
+test_*.py
+scratch/
+# End of .gitignore
