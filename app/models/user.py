@@ -3,7 +3,6 @@ from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
-
 # /workspaces/flask_user_managemnt/app/models/user.py
 
 
@@ -43,7 +42,13 @@ class User(db.Model, TimestampMixin):
     user_metadata = db.Column(db.JSON, nullable=False, default=dict)  # free-form user metadata
     last_login = db.Column(db.DateTime, nullable=True)
 
-    
+    # relationship to Team model (define Team in another module). 'members' backref on Team.
+    teams = db.relationship(
+        "Team",
+        secondary=team_members,
+        backref=db.backref("members", lazy="dynamic"),
+        lazy="dynamic",
+    )
 
     def __repr__(self) -> str:
         return f"<User id={self.id} username={self.username!r} email={self.email!r}>"
