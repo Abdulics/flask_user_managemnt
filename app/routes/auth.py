@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 # Create the blueprint
-bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='../templates/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='../templates/auth')
 
 # ----- Routes -----
 
-@bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         # Grab form data
@@ -27,7 +27,7 @@ def register():
     return render_template('register.html')
 
 
-@bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username_or_email = request.form.get('username_or_email')
