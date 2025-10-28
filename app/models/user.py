@@ -3,9 +3,6 @@ from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
-# /workspaces/flask_user_managemnt/app/models/user.py
-
-
 # association table for many-to-many User <-> Team
 team_members = db.Table(
     "team_members",
