@@ -31,8 +31,8 @@ class TimeOff(db.Model):
 
     reason = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc), onupdate=datetime.now(datetime.timezone.utc))
 
     # relationship: assumes a User model exists with __tablename__ == "users"
     user = db.relationship("User", backref=db.backref("timeoffs", lazy="dynamic"))

@@ -44,9 +44,9 @@ class Paystub(ModelBase):
     file_path = Column(String(1024), nullable=True)
     notes = Column(Text, nullable=True)
 
-    issued_at = Column(DateTime, nullable=True, default=datetime.utcnow)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    issued_at = Column(DateTime, nullable=True, default=datetime.now(datetime.timezone.utc))
+    created_at = Column(DateTime, nullable=False, default=datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, nullable=False, default=datetime.now(datetime.timezone.utc), onupdate=datetime.now(datetime.timezone.utc))
 
     def __repr__(self) -> str:
         return f"<Paystub id={self.id} employee_id={self.employee_id} period={self.pay_period_start}→{self.pay_period_end} net={self.net_pay}>"
