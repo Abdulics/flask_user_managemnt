@@ -1,0 +1,38 @@
+# Core
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.36
+psycopg2-binary==2.9.9        # PostgreSQL driver
+python-dotenv==1.0.1          # For loading .env
+
+# Database migrations
+Flask-Migrate==4.0.7           # Alembic integration
+
+# Forms and validation
+Flask-WTF==1.2.1               # Forms
+WTForms==3.1.2
+
+# Authentication
+Flask-Login==0.6.3             # User sessions
+Flask-Bcrypt==1.0.1            # Password hashing
+Flask-Principal==0.4.0         #For more complex RBAC
+
+# Email support (for internal messages or notifications)
+Flask-Mail==0.10.0
+
+# Utilities
+Flask-Admin==1.6.1             # Admin dashboards
+Flask-Bootstrap==3.3.7.1       # Easy Bootstrap integration (optional)
+Flask-Moment==1.0.5            # For date/time display
+
+# Testing
+pytest==8.2.1
+pytest-flask==1.3.0
+
+# Linting / formatting
+flake8==7.0.0
+black==24.8.0
+
+# API requests
+requests==2.32.3               # For sending API requests (e.g., paystub generation, external reports)
+
