@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 import enum
 from app import db
 from sqlalchemy.orm import validates
@@ -16,12 +16,17 @@ class TimeOffStatus(enum.Enum):
     DENIED = "denied"
     CANCELLED = "cancelled"
 
+class TimestampMixin:
+    """Reusable timestamp fields."""
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
 
-class TimeOff(db.Model):
+class TimeOff(db.Model, TimestampMixin):
     __tablename__ = "timeoffs"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     type = db.Column(db.Enum(TimeOffType), nullable=False, default=TimeOffType.VACATION)
     status = db.Column(db.Enum(TimeOffStatus), nullable=False, default=TimeOffStatus.PENDING)
@@ -31,10 +36,7 @@ class TimeOff(db.Model):
 
     reason = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc))
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc), onupdate=datetime.now(datetime.timezone.utc))
-
-    # relationship: assumes a User model exists with __tablename__ == "users"
+    # relationship: assumes a User model exists with __tablename__ == "user"
     user = db.relationship("User", backref=db.backref("timeoffs", lazy="dynamic"))
 
     def __repr__(self):

@@ -1,15 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 class Message(db.Model):
     __tablename__ = "messages"
 
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    recipient_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     subject = db.Column(db.String(255), nullable=True)
     body = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc), index=True, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc), index=True, nullable=False)
     read = db.Column(db.Boolean, default=False, nullable=False)
 
     # relationships to User are declared by string to avoid circular imports

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
@@ -13,9 +13,8 @@ team_members = db.Table(
 
 class TimestampMixin:
     """Reusable timestamp fields."""
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc))
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(datetime.timezone.utc), onupdate=datetime.now(datetime.timezone.utc))
-
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
 class User(db.Model, TimestampMixin):
     """
@@ -47,6 +46,15 @@ class User(db.Model, TimestampMixin):
         lazy="dynamic",
     )
 
+    # relationship to Task model
+    tasks = db.relationship(
+        "Task",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic"  # keep consistent with your preference
+    )
+
+
     def __repr__(self) -> str:
         return f"<User id={self.id} username={self.username!r} email={self.email!r}>"
 
@@ -71,7 +79,7 @@ class User(db.Model, TimestampMixin):
 
     def touch_last_login(self) -> None:
         """Set last_login to now (useful after successful auth)."""
-        self.last_login = datetime.now(datetime.timezone.utc)()
+        self.last_login = datetime.now(datetime.timezone.utc)
 
     def to_dict(self, include_email: bool = False) -> Dict[str, Any]:
         """Serialize user to dict. Avoid exposing sensitive fields by default."""

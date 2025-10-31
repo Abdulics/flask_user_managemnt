@@ -1,7 +1,12 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from enum import Enum as PyEnum
 from app import db
 
+class TimestampMixin:
+    """Reusable timestamp fields."""
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
 class AttendanceStatus(PyEnum):
     PRESENT = "present"
     ABSENT = "absent"
@@ -9,7 +14,7 @@ class AttendanceStatus(PyEnum):
     EXCUSED = "excused"
 
 
-class Attendance(db.Model):
+class Attendance(db.Model, TimestampMixin):
     """
     Attendance record for a user on a particular date.
 
@@ -27,9 +32,6 @@ class Attendance(db.Model):
     date = db.Column(db.Date, nullable=False, default=date.today)
     status = db.Column(db.Enum(AttendanceStatus, name="attendance_status"), nullable=False, default=AttendanceStatus.PRESENT)
     note = db.Column(db.Text, nullable=True)
-
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # relationship: expects User model to define back_populates="attendances" or similar
     user = db.relationship("User", back_populates="attendances", lazy="joined")
@@ -60,7 +62,7 @@ class Attendance(db.Model):
         self.updated_at = datetime.utcnow()
 
     @classmethod
-    def for_user_on_date(cls, user_id: int, target_date: date, create_if_missing: bool = False):
+    def for_user_on_date(cls, user_id: int, target_date: date, create_if_missing: bool = False): # type: ignore
         """
         Helper to get attendance record for a given user and date.
         If create_if_missing is True, returns a new unsaved instance when none exists.
