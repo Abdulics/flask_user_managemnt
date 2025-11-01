@@ -18,7 +18,7 @@ class Attendance(db.Model, TimestampMixin):
     """
     Attendance record for a user on a particular date.
 
-    - user_id: FK to users.id
+    - user_id: FK to user.id
     - date: the day the attendance applies to (one record per user/date)
     - status: one of AttendanceStatus
     - note: optional free text (reason, comment, etc.)
@@ -28,7 +28,7 @@ class Attendance(db.Model, TimestampMixin):
     __table_args__ = (db.UniqueConstraint("user_id", "date", name="uix_user_date"),)
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     date = db.Column(db.Date, nullable=False, default=date.today)
     status = db.Column(db.Enum(AttendanceStatus, name="attendance_status"), nullable=False, default=AttendanceStatus.PRESENT)
     note = db.Column(db.Text, nullable=True)

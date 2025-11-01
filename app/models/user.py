@@ -54,6 +54,13 @@ class User(db.Model, TimestampMixin):
         lazy="dynamic"  # keep consistent with your preference
     )
 
+    # relationship to Attendance model
+    attendances = db.relationship(
+        "Attendance",
+          back_populates="user", 
+          lazy="dynamic"
+    )
+
 
     def __repr__(self) -> str:
         return f"<User id={self.id} username={self.username!r} email={self.email!r}>"

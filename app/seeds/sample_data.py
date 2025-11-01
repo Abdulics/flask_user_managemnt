@@ -1,65 +1,106 @@
-from datetime import datetime
-from typing import Optional, Dict, Any
+import sys
+import os
 
-from app import db
-from app.models.user import User
+# Add project root to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import datetime, date, timedelta
+from .. import db, create_app
+from ..models.user import User, team_members
+from ..models.team import Team
+from ..models.task import Task
+from ..models.address import Address
+from ..models.employees import Employee
+from ..models.timeoff import TimeOff, TimeOffType, TimeOffStatus
+from ..models.attendance import Attendance, AttendanceStatus
 
-def create_full_user(
-	username: str = "jdoe",
-	email: str = "jdoe@example.com",
-	password: str = "Password123!",
-	is_admin: bool = True,
-	is_active: bool = True,
-	bio: Optional[str] = "A sample full-featured user created by seed.",
-	user_metadata: Optional[Dict[str, Any]] = None,
-	last_login: Optional[datetime] = None,
-	commit: bool = False,
-	app=None,
-) -> User:
-	"""Create and return a fully populated User instance.
+app = create_app()
 
-	This helper builds a User object with sensible defaults and sets the
-	password hash. If `commit=True` and an application `app` is provided,
-	the user will be added to the database and committed inside an
-	application context.
+with app.app_context():
+	# # Clear existing data (optional, careful in production!)
+	# db.session.execute(team_members.delete())
+	# #Attendance.query.delete()
+	# TimeOff.query.delete()
+	# Task.query.delete()
+	# Address.query.delete()
+	# Employee.query.delete()
+	# Team.query.delete()
+	# User.query.delete()
+	# db.session.commit()
 
-	Returns the User instance (committed or not depending on arguments).
-	"""
+	# --- USERS ---
+	users = [
+		User(username="alice", email="alice@example.com", is_admin=True, bio="Admin user"),
+		User(username="bob", email="bob@example.com", bio="Regular user"),
+		User(username="carol", email="carol@example.com", bio="Manager user"),
+		User(username="dave", email="dave@example.com", bio="Developer"),
+		User(username="eve", email="eve@example.com", bio="Intern")
+	]
 
-	if user_metadata is None:
-		user_metadata = {
-			"preferences": {"theme": "dark", "notifications": True},
-			"tags": ["sample", "seed"],
-		}
+	for u in users:
+		u.password = "password123"  # hashed automatically
+		db.session.add(u)
 
-	user = User(username=username, email=email)
-	user.is_admin = is_admin
-	user.is_active = is_active
-	user.bio = bio
-	user.user_metadata = user_metadata
-	# set explicit last_login if provided
-	if last_login:
-		user.last_login = last_login
-	else:
-		# leave as None or set to now for demonstration
-		user.last_login = datetime.now(datetime.timezone.utc)
+	db.session.commit()
 
-	# set password (writes hashed password)
-	user.set_password(password)
+	# --- TEAMS ---
+	team1 = Team(name="Engineering", slug="engineering", description="Engineering team", owner_id=users[0].id)
+	team2 = Team(name="HR", slug="hr", description="HR team", owner_id=users[2].id)
+	db.session.add_all([team1, team2])
+	db.session.commit()
 
-	# Optionally persist to DB when an app context is provided
-	if commit:
-		if app is None:
-			raise RuntimeError("To commit to the database, pass a Flask `app` instance.")
-		with app.app_context():
-			db.session.add(user)
-			db.session.commit()
+	# Add members
+	team1.add_member(users[1])
+	team1.add_member(users[3])
+	team2.add_member(users[2])
+	team2.add_member(users[4])
+	db.session.commit()
 
-	return user
+	# --- EMPLOYEES ---
+	employees = [
+		Employee(user_id=users[0].id, employee_id="E001", first_name="Alice", last_name="Admin", department="IT", position="CTO", salary=150000),
+		Employee(user_id=users[1].id, employee_id="E002", first_name="Bob", last_name="Builder", department="Engineering", position="Engineer", salary=90000, manager_id=1),
+		Employee(user_id=users[2].id, employee_id="E003", first_name="Carol", last_name="Manager", department="HR", position="HR Manager", salary=95000),
+		Employee(user_id=users[3].id, employee_id="E004", first_name="Dave", last_name="Dev", department="Engineering", position="Developer", salary=85000, manager_id=2),
+		Employee(user_id=users[4].id, employee_id="E005", first_name="Eve", last_name="Intern", department="HR", position="Intern", salary=40000, manager_id=3)
+	]
+	db.session.add_all(employees)
+	db.session.commit()
 
+	# --- ADDRESSES ---
+	addresses = [
+		Address(employee_id=1, type="home", street="123 Admin St", city="New York", state="NY", postal_code="10001", country="USA"),
+		Address(employee_id=2, type="home", street="456 Builder Ave", city="Boston", state="MA", postal_code="02110", country="USA"),
+		Address(employee_id=3, type="home", street="789 Manager Rd", city="Chicago", state="IL", postal_code="60601", country="USA"),
+	]
+	db.session.add_all(addresses)
+	db.session.commit()
 
-if __name__ == "__main__":
-	# Basic demonstration (won't commit unless you provide a create_app / app)
-	demo = create_full_user()
-	print("Created user object (not persisted):", demo)
+	# --- TASKS ---
+	tasks = [
+		Task(title="Setup project repo", description="Initialize GitLab repo", user_id=users[1].id, due_date=datetime.utcnow() + timedelta(days=3)),
+		Task(title="Create HR policy", description="Draft HR guidelines", user_id=users[2].id, due_date=datetime.utcnow() + timedelta(days=5)),
+		Task(title="Develop API", description="REST API endpoints", user_id=users[3].id, due_date=datetime.utcnow() + timedelta(days=7)),
+		Task(title="Prepare presentation", description="Team presentation slides", user_id=users[4].id, due_date=datetime.utcnow() + timedelta(days=2)),
+	]
+	db.session.add_all(tasks)
+	db.session.commit()
+
+	# --- TIME OFFS ---
+	timeoffs = [
+		TimeOff(user_id=users[1].id, type=TimeOffType.VACATION, status=TimeOffStatus.APPROVED, start_date=date.today() + timedelta(days=10), end_date=date.today() + timedelta(days=15), reason="Family vacation"),
+		TimeOff(user_id=users[3].id, type=TimeOffType.SICK, status=TimeOffStatus.PENDING, start_date=date.today() + timedelta(days=1), end_date=date.today() + timedelta(days=3), reason="Medical leave"),
+	]
+	db.session.add_all(timeoffs)
+	db.session.commit()
+
+	# --- ATTENDANCE ---
+	# attendances = []
+	# for u in users:
+	#     for i in range(5):  # last 5 days
+	#         attendances.append(Attendance(user_id=u.id, date=date.today() - timedelta(days=i), status=AttendanceStatus.PRESENT))
+
+	# db.session.add_all(attendances)
+	# db.session.commit()
+
+	print("Sample data inserted successfully!")
