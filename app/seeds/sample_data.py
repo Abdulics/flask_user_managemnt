@@ -1,18 +1,18 @@
 import sys
 import os
 
-# Add project root to Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to Python path (add parent of 'app' so absolute imports work)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from datetime import datetime, date, timedelta
-from .. import db, create_app
-from ..models.user import User, team_members
-from ..models.team import Team
-from ..models.task import Task
-from ..models.address import Address
-from ..models.employees import Employee
-from ..models.timeoff import TimeOff, TimeOffType, TimeOffStatus
-from ..models.attendance import Attendance, AttendanceStatus
+from app import db, create_app
+from app.models.user import User
+from app.models.team import Team
+from app.models.task import Task
+from app.models.address import Address
+from app.models.employees import Employee
+from app.models.timeoff import TimeOff, TimeOffType, TimeOffStatus
+from app.models.attendance import Attendance, AttendanceStatus
 
 app = create_app()
 
@@ -95,12 +95,12 @@ with app.app_context():
 	db.session.commit()
 
 	# --- ATTENDANCE ---
-	# attendances = []
-	# for u in users:
-	#     for i in range(5):  # last 5 days
-	#         attendances.append(Attendance(user_id=u.id, date=date.today() - timedelta(days=i), status=AttendanceStatus.PRESENT))
+	attendances = []
+	for u in users:
+		for i in range(5):  # last 5 days
+			attendances.append(Attendance(user_id=u.id, date=date.today() - timedelta(days=i), status=AttendanceStatus.PRESENT))
 
-	# db.session.add_all(attendances)
-	# db.session.commit()
+	db.session.add_all(attendances)
+	db.session.commit()
 
 	print("Sample data inserted successfully!")
