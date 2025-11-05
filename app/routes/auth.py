@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+
+from app.models.user import User
 from ..forms.auth_forms import RegistrationForm, LoginForm
+from app import db
 
 # Create the blueprint
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='../templates/auth')
@@ -10,18 +13,30 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='../te
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
+        # prevent duplicate usernames/emails
+        existing = User.query.filter((User.username == form.username.data) | (User.email == form.email.data)).first()
+        if existing:
+            flash("A user with that username or email already exists.", "danger")
+            return render_template('auth.register', form=form)
+
+        user = User(username=form.username.data, email=form.email.data)
         # Password confirmation/validation should be handled by the form validators
         password = form.password.data
+        user.password = password  # This will hash the password via the setter
 
-        # Here you would normally create a user in the DB
-        flash(f"User {username} registered successfully!", "success")
-        print(f"Registered user: {username}, Email: {email}")
+        # Here you would normally add the user to the database
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            flash("An error occurred while creating your account. Please try again.", "danger")
+            return render_template(url_for('auth.register'), form=form)
+
+        flash(f"Account created for {user.username}! Please log in.", "success")
         return redirect(url_for('auth.login'))
-
     # GET request or validation failed
-    return render_template('register.html', form=form)
+    return render_template(url_for('auth.register'), form=form)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

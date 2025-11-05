@@ -31,7 +31,7 @@ class RegistrationForm(FlaskForm):
     )
     confirm_password = PasswordField(
         "Confirm Password",
-        validators=[DataRequired(message="Please confirm your password"), EqualTo('password', message="Passwords must match")]
+        validators=[DataRequired(message="Please confirm your password"), EqualTo('password', message="Passwords must match Yo")]
     )
     submit = SubmitField("Register")
 
