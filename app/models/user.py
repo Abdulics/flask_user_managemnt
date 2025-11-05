@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 from app import db
 
 # association table for many-to-many User <-> Team
@@ -16,7 +17,7 @@ class TimestampMixin:
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-class User(db.Model, TimestampMixin):
+class User(UserMixin, db.Model, TimestampMixin):
     """
     Base user model for user/teams manager.
     - Designed for use with Flask-SQLAlchemy (db.Model).

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light border-end vh-100">
+            <h4 class="p-3">Dashboard</h4>
+            <ul class="nav flex-column px-3">
+                <li class="nav-item mb-2">
+                    #Home</a>
+                </li>
+                <li class="nav-item mb-2">
+                    #Profile</a>
+                </li>
+                <li class="nav-item mb-2">
+                    #Settings</a>
+                </li>
+                <li class="nav-item mb-2">
+                    {{ url_for(Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div class="p-4">
+                <h2 class="mb-4">Welcome, {{ current_user.username }}!</h2>
+
+                <!-- Example Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Actions</h5>
+                        {{ url_for(
+                            {{ form.hidden_tag() }}
+                            <div class="mb-3">
+                                {{ form.action.label(class="form-label") }}
+                                {{ form.action(class="form-select") }}
+                                {% if form.action.errors %}
+                                    <div class="text-danger small">{{ form.action.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Placeholder for future widgets -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Stats</h5>
+                                <p class="card-text">Coming soon...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Notifications</h5>
+                                <p class="card-text">Coming soon...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -31,11 +31,11 @@ def register():
         except Exception:
             db.session.rollback()
             flash("An error occurred while creating your account. Please try again.", "danger")
-            #return render_template('auth/register.html', form=form)
-            return 'An error occurred while creating your account. Please try again.'
+            return render_template('auth/register.html', form=form)
+            
 
         flash(f"Account created for {user.username}! Please log in.", "success")
-        return redirect('auth/login.html')  # redirect to login page
+        return redirect(url_for('auth.login'))  # redirect to login page
     # GET request or validation failed
     return render_template('auth/register.html', form=form)
 
@@ -55,7 +55,14 @@ def login():
         # Here you would normally check credentials
         flash(f"Logged in as {identifier}", "success")
         print(f"User logged in: {identifier}")
-        return redirect(url_for('landing_page.index'))  # redirect to landing/home page
+        return redirect(url_for('dashboard.index'))  # redirect to dashboard
 
     # GET request or validation failed
     return render_template('auth/login.html', form=form)
+
+@auth_bp.route('/logout')
+def logout():
+    # Here you would normally handle logout logic
+    #logout_user()
+    flash("You have been logged out.", "info")
+    return redirect(url_for('dashboard.index'))  # redirect to landing/home page
