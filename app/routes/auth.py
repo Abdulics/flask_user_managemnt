@@ -5,7 +5,7 @@ from ..forms.auth_forms import RegistrationForm, LoginForm
 from app import db
 
 # Create the blueprint
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='../templates/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 # ----- Routes -----
 
@@ -17,7 +17,7 @@ def register():
         existing = User.query.filter((User.username == form.username.data) | (User.email == form.email.data)).first()
         if existing:
             flash("A user with that username or email already exists.", "danger")
-            return render_template('auth.register', form=form)
+            return render_template('auth/register.html', form=form)
 
         user = User(username=form.username.data, email=form.email.data)
         # Password confirmation/validation should be handled by the form validators
@@ -31,12 +31,13 @@ def register():
         except Exception:
             db.session.rollback()
             flash("An error occurred while creating your account. Please try again.", "danger")
-            return render_template(url_for('auth.register'), form=form)
+            #return render_template('auth/register.html', form=form)
+            return 'An error occurred while creating your account. Please try again.'
 
         flash(f"Account created for {user.username}! Please log in.", "success")
-        return redirect(url_for('auth.login'))
+        return redirect('auth/login.html')  # redirect to login page
     # GET request or validation failed
-    return render_template(url_for('auth.register'), form=form)
+    return render_template('auth/register.html', form=form)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -57,4 +58,4 @@ def login():
         return redirect(url_for('landing_page.index'))  # redirect to landing/home page
 
     # GET request or validation failed
-    return render_template('login.html', form=form)
+    return render_template('auth/login.html', form=form)
