@@ -45,6 +45,7 @@ class UserForm(FlaskForm):
             if self.target is not None and getattr(self.actor, "id", None) == getattr(self.target, "id", None):
                 # mark the field as disabled for HTML rendering; the validator will also block demotion.
                 self.is_admin.render_kw = {"disabled": True}
+        
 
     def validate_is_admin(self, field):
         # This validator only runs when is_admin is present (i.e., actor is admin).
@@ -66,6 +67,7 @@ class UserForm(FlaskForm):
         user.username = self.username.data
         user.email = self.email.data
         user.is_active = bool(self.is_active.data)
+        user.bio = self.bio.data
 
         # Only update is_admin if the field exists on this form (actor was admin).
         if hasattr(self, "is_admin"):
@@ -76,9 +78,9 @@ class UserForm(FlaskForm):
                 and getattr(self.is_admin, "render_kw", {}).get("disabled")
             ):
                 user.is_admin = bool(self.is_admin.data)
-
+                
         # Update password only if provided
-        if self.password.data:
+        if self.password.data.strip():
             if hasattr(user, "set_password") and callable(user.set_password):
                 user.set_password(self.password.data)
             else:

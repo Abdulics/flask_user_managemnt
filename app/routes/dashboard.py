@@ -35,6 +35,14 @@ def view_profile():
 @login_required
 def edit_profile():
     form = UserForm(actor=current_user, target=current_user, obj=current_user)
+    print(f"Editing profile for user: {current_user.username}")
+    print(f"Form fields: {form._fields.keys()}")
+    print(f"Form data on POST: {request.form}")
+    if not (form.password.data and form.password.data.strip()):
+        print("Password field is empty.")
+        
+    else:
+        print("Password field is filled.")
 
     if form.validate_on_submit():
         try:
