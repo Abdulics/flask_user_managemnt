@@ -16,7 +16,7 @@
                     #Settings</a>
                 </li>
                 <li class="nav-item mb-2">
-                    {{ url_for(Logout</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
                 </li>
             </ul>
         </div>
@@ -30,8 +30,8 @@
                 <div class="card mb-4 shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title">Quick Actions</h5>
-                        {{ url_for(
-                            {{ form.hidden_tag() }}
+                        <form method="POST" action="{{ url_for('dashboard.index') }}">
+                        {{ form.hidden_tag() }}
                             <div class="mb-3">
                                 {{ form.action.label(class="form-label") }}
                                 {{ form.action(class="form-select") }}

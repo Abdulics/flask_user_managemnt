@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_user, logout_user
 
 from app.models.user import User
 from ..forms.auth_forms import RegistrationForm, LoginForm
@@ -53,9 +54,13 @@ def login():
             identifier = (identifier.data if identifier else None) or getattr(form, 'email', None).data
 
         # Here you would normally check credentials
-        flash(f"Logged in as {identifier}", "success")
-        print(f"User logged in: {identifier}")
-        return redirect(url_for('dashboard.index'))  # redirect to dashboard
+        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash(f"Logged in as {identifier}", "success")
+            return redirect(url_for('dashboard.index'))  # redirect to dashboard
+        else:
+            flash("Invalid username/email or password.", "danger")
 
     # GET request or validation failed
     return render_template('auth/login.html', form=form)
@@ -63,6 +68,8 @@ def login():
 @auth_bp.route('/logout')
 def logout():
     # Here you would normally handle logout logic
-    #logout_user()
+    logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for('dashboard.index'))  # redirect to landing/home page
+    return redirect(url_for('main.home'))  # redirect to landing page
+
+
