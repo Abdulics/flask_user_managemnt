@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for, request
 from app.forms.dashboard_forms import DashboardActionForm
 from flask_login import login_required, current_user
 from app import db
@@ -23,14 +23,32 @@ def index():
     return render_template('dashboard/dashboard.html', form=form)
 
 
-@dashboard_bp.route('/profile', methods=['GET', 'POST'])
+
+# View Profile (Read-only)
+@dashboard_bp.route('/profile')
 @login_required
-def profile():
+def view_profile():
+    return render_template('dashboard/profile_view.html', user=current_user)
+
+# Edit Profile
+@dashboard_bp.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
     form = UserForm(actor=current_user, target=current_user, obj=current_user)
-    print(f"Editing profile for user: {current_user.username}")
+
     if form.validate_on_submit():
-        form.populate_obj(current_user)
-        db.session.commit()
-        flash("Profile updated successfully!", "success")
-    return render_template('dashboard/profile.html', form=form)
+        try:
+            form.apply_changes(current_user)
+            db.session.commit()
+            flash("Profile updated successfully!", "success")
+            return redirect(url_for('main.view_profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating profile: {str(e)}", "danger")
+    elif request.method == 'POST':
+        flash("Please correct the errors below.", "warning")
+
+    return render_template('dashboard/profile_edit.html', form=form)
+
+
 
