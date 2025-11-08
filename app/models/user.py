@@ -2,7 +2,13 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from enum import Enum
 from app import db
+
+class Role(Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    EMPLOYEE = "employee"
 
 # association table for many-to-many User <-> Team
 team_members = db.Table(
@@ -10,7 +16,6 @@ team_members = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
     db.Column("team_id", db.Integer, db.ForeignKey("team.id"), primary_key=True),
 )
-
 
 class TimestampMixin:
     """Reusable timestamp fields."""
@@ -33,7 +38,7 @@ class User(UserMixin, db.Model, TimestampMixin):
     _password_hash = db.Column("password_hash", db.String(255), nullable=False)
 
     is_active = db.Column(db.Boolean, nullable=False, default=True)
-    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    role = db.Column(db.Enum(Role), default=Role.EMPLOYEE, nullable=False)
 
     bio = db.Column(db.Text, nullable=True)
     user_metadata = db.Column(db.JSON, nullable=False, default=dict)  # free-form user metadata

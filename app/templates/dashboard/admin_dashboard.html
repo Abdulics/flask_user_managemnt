@@ -1,0 +1,106 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="mt-5">
+  <h3 class="mb-3">Admin Panel</h3>
+  <p class="text-muted">Manage users, departments, and system settings below.</p>
+
+  <!-- Summary Metrics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Total Users</h6>
+          <h3 class="fw-bold">{{ total_users or '—' }}</h3>
+          <small class="text-secondary">Active: {{ active_users or '—' }}</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Departments</h6>
+          <h3 class="fw-bold">{{ total_departments or '—' }}</h3>
+          <small class="text-secondary">Teams registered</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Attendance Records</h6>
+          <h3 class="fw-bold">{{ total_attendance or '—' }}</h3>
+          <small class="text-secondary">Tracked this month</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">System Health</h6>
+          <h3 class="fw-bold text-success">✓</h3>
+          <small class="text-secondary">Operational</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Management Sections -->
+  <div class="row">
+    <!-- User Management -->
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">User Management</h5>
+          <p class="card-text flex-grow-1">
+            Create, view, edit, or deactivate user accounts. Assign roles and reset passwords when needed.
+          </p>
+          <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary btn-sm mt-auto">Manage Users</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department / Team Management -->
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Departments & Teams</h5>
+          <p class="card-text flex-grow-1">
+            Oversee department structure, assign managers, and monitor team capacity.
+          </p>
+          <a href="#" class="btn btn-success btn-sm mt-auto">View Departments</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Section -->
+  <div class="row mt-3">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">System Reports</h5>
+          <p class="card-text flex-grow-1">
+            Generate user activity, login, and attendance reports for internal audits or performance reviews.
+          </p>
+          <a href="#" class="btn btn-warning btn-sm mt-auto">Generate Report</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Configuration</h5>
+          <p class="card-text flex-grow-1">
+            Update global system settings, permissions, and role-based access rules.
+          </p>
+          <a href="#" class="btn btn-secondary btn-sm mt-auto">System Settings</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

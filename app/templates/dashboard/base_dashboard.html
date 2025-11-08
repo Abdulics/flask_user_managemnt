@@ -1,0 +1,122 @@
+{# 
+Base Dashboard Template
+
+Purpose:
+    Shared dashboard layout for all authenticated users.
+    Provides a sidebar, top-level content structure, and common user info.
+
+Usage:
+    Extend this file for role-specific dashboards (e.g., admin_dashboard.html).
+    Use the "dashboard_content" block to inject role-specific widgets or sections.
+
+Features:
+    - Displays logged-in user's name and key info
+    - Sidebar navigation for shared pages (Profile, Attendance, Notifications, etc.)
+    - Responsive Bootstrap grid layout
+    - Role-based customization support via Jinja conditionals
+
+Example:
+    {% extends 'dashboard/base_dashboard.html' %}
+    {% block dashboard_content %}
+      <h3>Manager Tools</h3>
+      <p>Here you can approve employee attendance.</p>
+    {% endblock %}
+#}
+
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" style="min-height: 100vh;">
+      <div class="position-sticky p-3 text-white">
+        <h5 class="mb-4">Welcome, {{ current_user.username }}</h5>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{{ url_for('dashboard.index') }}">🏠 Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{{ url_for('dashboard.view_profile') }}">👤 Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">📅 Attendance</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">🧾 Notifications</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">⚙️ Settings</a>
+          </li>
+
+          {% if current_user.role in ['Admin', 'Manager'] %}
+          <li class="nav-item">
+            <a class="nav-link text-warning" href="">👥 Manage Users</a>
+          </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">🚪 Logout</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <h2 class="mb-4">Dashboard Overview</h2>
+
+      <!-- Shared Overview Cards -->
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">My Attendance</h5>
+              <p class="card-text">Last check-in: <strong>{{ current_user.last_checkin or 'N/A' }}</strong></p>
+              <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">Notifications</h5>
+              <p class="card-text">You have <strong>3</strong> new notifications.</p>
+              <a href="#" class="btn btn-sm btn-outline-success">View</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">Profile</h5>
+              <p class="card-text">Manage your account settings and password.</p>
+              <a href="{{ url_for('dashboard.edit_profile') }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Summary -->
+      <div class="card mt-4 shadow-sm border-0">
+        <div class="card-body">
+          <h4>Activity Summary</h4>
+          <ul>
+            <li>Last login: {{ current_user.last_login or 'Unknown' }}</li>
+            <li>Current role: {{ current_user.role }}</li>
+            <li>Email: {{ current_user.email }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Role-Specific Content -->
+      {% block dashboard_content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+{% endblock %}

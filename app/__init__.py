@@ -23,7 +23,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Import your models so Alembic can detect them
-    from app.models import user, team, message, address, task, employees, timeoff
+    from app.models import user, team, message, address, task, employees, timeoff, attendance
 
     from app.routes.main_route import main_bp
     app.register_blueprint(main_bp)
@@ -33,6 +33,9 @@ def create_app():
 
     from app.routes.dashboard import dashboard_bp
     app.register_blueprint(dashboard_bp)
+
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
     
     @login_manager.user_loader
     def load_user(user_id):

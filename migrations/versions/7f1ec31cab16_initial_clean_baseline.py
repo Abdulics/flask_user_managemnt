@@ -1,8 +1,8 @@
-"""initial setup
+"""initial clean baseline
 
-Revision ID: 6fc361fb96b6
+Revision ID: 7f1ec31cab16
 Revises: 
-Create Date: 2025-11-05 17:35:13.975410
+Create Date: 2025-11-07 16:47:54.083378
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6fc361fb96b6'
+revision = '7f1ec31cab16'
 down_revision = None
 branch_labels = None
 depends_on = None

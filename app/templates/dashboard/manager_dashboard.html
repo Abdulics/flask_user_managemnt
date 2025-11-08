@@ -1,0 +1,119 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="mt-5">
+  <h3 class="mb-3">Team Manager Dashboard</h3>
+  <p class="text-muted">Monitor your team’s performance, attendance, and current projects.</p>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Team Members</h6>
+          <h3 class="fw-bold">{{ team_size or '—' }}</h3>
+          <small class="text-secondary">Active employees</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Attendance Avg</h6>
+          <h3 class="fw-bold">{{ avg_attendance or '—' }}%</h3>
+          <small class="text-secondary">This month</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Open Tasks</h6>
+          <h3 class="fw-bold">{{ open_tasks or '—' }}</h3>
+          <small class="text-secondary">Assigned to your team</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Performance Score</h6>
+          <h3 class="fw-bold text-success">{{ performance_score or '—' }}%</h3>
+          <small class="text-secondary">Quarterly average</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Overview Table -->
+  <div class="card shadow-sm border-0 mt-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Team Overview</h5>
+        <a href="{{ url_for('manager.add_team_member') }}" class="btn btn-sm btn-outline-primary">Add Member</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Attendance</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for member in team_members %}
+            <tr>
+              <td>{{ member.first_name }} {{ member.last_name }}</td>
+              <td>{{ member.department or '—' }}</td>
+              <td>
+                {% if member.is_active %}
+                  <span class="badge bg-success">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td>{{ member.attendance_rate or '—' }}%</td>
+              <td>
+                <a href="{{ url_for('manager.view_member', id=member.id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">No team members found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Management -->
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-body">
+      <h5>Recent Team Tasks</h5>
+      <ul class="list-group list-group-flush">
+        {% for task in recent_tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ task.title }}</strong><br>
+            <small class="text-muted">Due: {{ task.due_date.strftime('%b %d, %Y') }}</small>
+          </div>
+          <span class="badge bg-{{ 'success' if task.status == 'Completed' else 'warning' }}">{{ task.status }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted">No recent tasks found.</li>
+        {% endfor %}
+      </ul>
+      <div class="text-end mt-3">
+        <a href="{{ url_for('manager.manage_tasks') }}" class="btn btn-outline-success btn-sm">View All Tasks</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

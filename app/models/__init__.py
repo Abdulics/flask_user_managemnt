@@ -1,4 +1,4 @@
-from .user import User
+from .user import User, Role
 from .team import Team
 from .task import Task
 from .employees import Employee
