@@ -1,7 +1,7 @@
-{% extends "profile/profile_base.html" %}
+{% extends "profile/base_view_profile.html" %}
 {% set can_edit = True %}
 
-{% block dashboard_content %}
+{% block role_specific %}
 {{ super() }}
 
 <div class="card mt-4 shadow-sm border-0">

@@ -55,26 +55,33 @@ class UserProfileForm(FlaskForm):
         self.actor = actor
         self.target = target
 
-        # Only admins can edit role
-        if not getattr(actor, "role", None) == Role.ADMIN:
+        # Admin cannot change own role
+        if actor and target and actor.role == Role.ADMIN:
+            if actor.id == target.id:
+                self.role.render_kw = {"disabled": True}  # Keep field visible but not editable
+            else:
+                self.role.render_kw = {}  # Editable
+
+        # Non-admins cannot edit role
+        elif actor and getattr(actor, "role", None) != Role.ADMIN:
             try:
                 del self.role
             except AttributeError:
                 pass
-        else:
-            # Admin cannot demote self
-            if target and actor.id == target.id:
-                self.role.render_kw = {"disabled": True}
 
         # Non-admins cannot edit username/email of others
-        if actor and target and actor.id != target.id:
+        if actor and target and actor.id != target.id and actor.role != Role.ADMIN:
             self.username.render_kw = {"readonly": True}
             self.email.render_kw = {"readonly": True}
 
-        # You can also set read-only for other sensitive Employee fields if needed
-        # e.g., salary only editable by Admin
-        if not (actor.role == Role.ADMIN):
-            self.salary.render_kw = {"readonly": True}
+        # Employee fields
+        if actor.role != Role.ADMIN:
+            for field_name in [
+                "employee_id", "first_name", "last_name", 
+                "department", "position", "hire_date", "salary", "manager_id", "is_active"
+            ]:
+                getattr(self, field_name).render_kw = {"readonly": True}
+
 
     def validate_role(self, field):
         if not hasattr(self, "role"):
@@ -86,17 +93,25 @@ class UserProfileForm(FlaskForm):
         if self.target and self.actor.id == self.target.id and field.data != Role.ADMIN.name:
             raise ValidationError("You cannot remove your own ADMIN role.")
 
-    def apply_changes(self, user, employee):
+    def apply_changes(self, target_user):
         """Apply form data to User and Employee objects."""
-        user.username = self.username.data
-        user.email = self.email.data
-        user.bio = self.bio.data
-        if hasattr(self, "role") and not (self.target and self.actor.id == self.target.id and getattr(self.role, "render_kw", {}).get("disabled")):
-            user.role = Role[self.role.data]
+        # Basic user fields
+        target_user.username = self.username.data
+        target_user.email = self.email.data
+        target_user.bio = self.bio.data
 
-        # Employee fields are mostly read-only, but you can allow Admins to update some
-        # e.g., department, position, salary if desired
-        if self.actor.role == Role.ADMIN:
-            employee.department = self.department.data
-            employee.position = self.position.data
-            employee.salary = self.salary.data
+        # Role field: only admin editing others can change
+        if hasattr(self, "role") and self.actor.role == Role.ADMIN and self.actor.id != target_user.id:
+            target_user.role = Role[self.role.data]
+
+        # Employee fields: only admin can edit, including their own employee record
+        if self.actor.role == Role.ADMIN and getattr(target_user, "employee", None):
+            target_user.employee.employee_id = self.employee_id.data
+            target_user.employee.first_name = self.first_name.data
+            target_user.employee.last_name = self.last_name.data
+            target_user.employee.department = self.department.data
+            target_user.employee.position = self.position.data
+            target_user.employee.hire_date = self.hire_date.data
+            target_user.employee.salary = self.salary.data
+            target_user.employee.manager_id = self.manager_id.data
+

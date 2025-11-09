@@ -47,49 +47,7 @@ def view_profile():
 
     return render_template(template, user=current_user)
 
-# Edit Profile
-@dashboard_bp.route('/profile/edit', methods=['GET', 'POST'])
-@login_required
-def edit_profile():
-    """
-    Allow users to edit their own profile.
-    - Users can edit username and email if not admin/manager.
-    - Role can only be changed by an admin; admin cannot change their own role.
-    - Password is handled separately, so ignored here.
-    """
-    # Bind form to current user
-    form = UserProfileForm(actor=current_user, target=current_user, obj=current_user)
 
-    print(f"Editing profile for user: {current_user.username}")
-    print(f"Form fields: {form._fields.keys()}")
-    print(f"Form data on POST: {request.form}")
-
-    # Ignore password in this form
-    if form.password.data:
-        print("Password field should be ignored here.")
-
-    if form.validate_on_submit():
-        try:
-            # Apply changes from form to the user object
-            form.apply_changes(current_user)
-            db.session.commit()
-            flash("Profile updated successfully!", "success")
-            # Redirect to the appropriate profile view based on role
-            role = current_user.role.value.lower()
-            if role == "admin":
-                return redirect(url_for('dashboard.view_profile_admin'))
-            elif role == "manager":
-                return redirect(url_for('dashboard.view_profile_manager'))
-            else:
-                return redirect(url_for('dashboard.view_profile_employee'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error updating profile: {str(e)}", "danger")
-    elif request.method == 'POST':
-        flash("Please correct the errors below.", "warning")
-
-    return render_template('dashboard/profile_edit.html', form=form)
 
 
 

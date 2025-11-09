@@ -3,53 +3,115 @@
 {% block title %}Employee Dashboard{% endblock %}
 
 {% block dashboard_content %}
-<h3 class="mt-5">Employee Dashboard</h3>
-<p>Welcome back! Here you can view your work details, attendance, and profile information.</p>
+<div class="mt-5">
+  <h3 class="mb-3">Employee Dashboard</h3>
+  <p class="text-muted">View your attendance, tasks, and profile information at a glance.</p>
 
-<div class="row mt-4">
+  <!-- Quick Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Attendance</h6>
+          <h3 class="fw-bold text-primary">{{ attendance_rate or '—' }}%</h3>
+          <small class="text-secondary">This month</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Tasks</h6>
+          <h3 class="fw-bold">{{ pending_tasks or '—' }}</h3>
+          <small class="text-secondary">Pending</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Leave Balance</h6>
+          <h3 class="fw-bold text-success">{{ leave_balance or '—' }}</h3>
+          <small class="text-secondary">Remaining days</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted">Manager</h6>
+          <h5 class="fw-bold">{{ manager_name or '—' }}</h5>
+          <small class="text-secondary">Your supervisor</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Attendance Summary -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm border-0">
-      <div class="card-body text-center">
-        <h5 class="card-title">Attendance</h5>
-        <p class="display-6 text-primary fw-bold">96%</p>
-        <a href="#" class="btn btn-outline-primary btn-sm">View Details</a>
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Recent Attendance</h5>
+        <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in attendance_records %}
+            <tr>
+              <td>{{ record.date.strftime('%b %d, %Y') }}</td>
+              <td>{{ record.check_in or '—' }}</td>
+              <td>{{ record.check_out or '—' }}</td>
+              <td>
+                {% if record.status == 'Present' %}
+                  <span class="badge bg-success">Present</span>
+                {% elif record.status == 'Absent' %}
+                  <span class="badge bg-danger">Absent</span>
+                {% else %}
+                  <span class="badge bg-warning">{{ record.status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="text-center text-muted">No attendance records found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- Payroll -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm border-0">
-      <div class="card-body text-center">
-        <h5 class="card-title">Payslips</h5>
-        <p class="text-muted mb-2">Latest: October 2025</p>
-        <a href="#" class="btn btn-outline-success btn-sm">Download</a>
+  <!-- Tasks Section -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <h5>Your Current Tasks</h5>
+      <ul class="list-group list-group-flush">
+        {% for task in recent_tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ task.title }}</strong><br>
+            <small class="text-muted">Due: {{ task.due_date.strftime('%b %d, %Y') }}</small>
+          </div>
+          <span class="badge bg-{{ 'success' if task.status == 'Completed' else 'warning' }}">{{ task.status }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted">No assigned tasks.</li>
+        {% endfor %}
+      </ul>
+      <div class="text-end mt-3">
+        <a href="#" class="btn btn-outline-success btn-sm">View All Tasks</a>
       </div>
     </div>
-  </div>
-
-  <!-- Profile -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm border-0">
-      <div class="card-body text-center">
-        <h5 class="card-title">My Profile</h5>
-        <p class="text-muted mb-2">Update your information and password</p>
-        <a href="#" class="btn btn-outline-secondary btn-sm">Edit Profile</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Optional: Recent Activity -->
-<div class="card mt-4 shadow-sm border-0">
-  <div class="card-body">
-    <h5 class="card-title">Recent Activity</h5>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">Clocked in at 8:05 AM today</li>
-      <li class="list-group-item">Submitted leave request (Pending)</li>
-      <li class="list-group-item">Updated address on November 2, 2025</li>
-    </ul>
   </div>
 </div>
 {% endblock %}

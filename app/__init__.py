@@ -36,7 +36,13 @@ def create_app():
 
     from app.routes.admin import admin_bp
     app.register_blueprint(admin_bp)
-    
+
+    from app.routes.profile import profile_bp
+    app.register_blueprint(profile_bp)
+
+    from app.routes.manager import manager_bp
+    app.register_blueprint(manager_bp)
+
     @login_manager.user_loader
     def load_user(user_id):
         from app.models.user import User

@@ -23,7 +23,7 @@ Example:
     {% endblock %}
 #}
 
-{% extends 'base.html' %}
+{% extends 'base_authenticated.html' %}
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -39,7 +39,7 @@ Example:
             <a class="nav-link text-white" href="{{ url_for('dashboard.index') }}">🏠 Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="{{ url_for('dashboard.view_profile') }}">👤 Profile</a>
+            <a class="nav-link text-white" href="{{ url_for('profile.view_profile') }}">👤 Profile</a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="#">📅 Attendance</a>
@@ -95,7 +95,7 @@ Example:
             <div class="card-body">
               <h5 class="card-title">Profile</h5>
               <p class="card-text">Manage your account settings and password.</p>
-              <a href="{{ url_for('dashboard.edit_profile') }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-sm btn-outline-secondary">Edit</a>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@ Example:
           <h4>Activity Summary</h4>
           <ul>
             <li>Last login: {{ current_user.last_login or 'Unknown' }}</li>
-            <li>Current role: {{ current_user.role }}</li>
+            <li>Current role: {{ current_user.role.value.capitalize() }}</li>
             <li>Email: {{ current_user.email }}</li>
           </ul>
         </div>

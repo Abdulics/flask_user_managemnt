@@ -1,0 +1,71 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <div class="d-flex align-items-center mb-4">
+      <img
+        src="{{ user.avatar_url or url_for('static', filename='images/default_avatar.png') }}"
+        alt="Profile Picture"
+        class="rounded-circle me-3"
+        width="90" height="90"
+      />
+      <div>
+        <h4 class="mb-0">
+          {{ user.employee.first_name if user.employee else user.username }}
+          {{ user.employee.last_name if user.employee else "" }}
+        </h4>
+        <small class="text-muted">{{ user.role.value|capitalize }}</small>
+      </div>
+    </div>
+
+    <hr />
+    <h5>Account Information</h5>
+    <ul class="list-unstyled">
+      <li><strong>Username:</strong> {{ user.username }}</li>
+      <li><strong>Email:</strong> {{ user.email }}</li>
+      <li><strong>Bio:</strong> {{ user.bio or "No bio provided" }}</li>
+      <li><strong>Status:</strong>
+        {% if user.is_active %}
+          <span class="badge bg-success">Active</span>
+        {% else %}
+          <span class="badge bg-secondary">Inactive</span>
+        {% endif %}
+      </li>
+      <li><strong>Last Login:</strong> {{ user.last_login.strftime("%b %d, %Y %I:%M %p") if user.last_login else "Never" }}</li>
+    </ul>
+
+    {% if user.employee %}
+    <hr />
+    <h5>Employee Details</h5>
+    <ul class="list-unstyled">
+      <li><strong>Employee ID:</strong> {{ user.employee.employee_id }}</li>
+      <li><strong>Name:</strong> {{ user.employee.first_name }} {{ user.employee.last_name }}</li>
+      <li><strong>Department:</strong> {{ user.employee.department or "N/A" }}</li>
+      <li><strong>Position:</strong> {{ user.employee.position or "N/A" }}</li>
+      <li><strong>Manager ID:</strong> {{ user.employee.manager_id or "Unassigned" }}</li>
+      <li><strong>Hire Date:</strong>
+        {{ user.employee.hire_date.strftime('%B %d, %Y') if user.employee.hire_date else "Unknown" }}
+      </li>
+      <li><strong>Salary:</strong>
+        {{ "{:,.2f}".format(user.employee.salary) if user.employee.salary else "N/A" }}
+      </li>
+    </ul>
+
+    <div class="mt-4">
+      <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-outline-primary btn-sm">
+        Edit Profile
+      </a>
+
+    </div>
+    {% else %}
+    <p class="text-muted mt-3">No employee record found.</p>
+    {% endif %}
+
+    {% block role_specific %}
+    <!-- Each role extends this section -->
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}
