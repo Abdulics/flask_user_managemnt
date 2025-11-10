@@ -6,7 +6,7 @@ class TimestampMixin:
     """Reusable timestamp fields."""
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc))
+                           onupdate=lambda: datetime.now(timezone.utc))  
 class Task(db.Model, TimestampMixin):
     __tablename__ = "tasks"
 

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-building"></i> Departments</h1>
+            <a href="{{ url_for('admin.create_department') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add Department</a>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if departments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead><tr><th>Name</th><th>Description</th><th>Employees</th></tr></thead>
+                        <tbody>
+                            {% for dept in departments %}
+                            <tr>
+                                <td>{{ dept.name }}</td>
+                                <td>{{ dept.description or 'N/A' }}</td>
+                                <td>{{ dept.employees.count() }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No departments found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

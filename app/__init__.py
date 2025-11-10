@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
+from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 
 db = SQLAlchemy()
@@ -14,6 +15,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
+    csrf = CSRFProtect(app)
     login_manager.init_app(app)
 
 
@@ -42,6 +44,15 @@ def create_app():
 
     from app.routes.manager import manager_bp
     app.register_blueprint(manager_bp)
+
+    from app.routes.employee import employee_bp
+    app.register_blueprint(employee_bp)
+
+    from app.routes.messages import message_bp
+    app.register_blueprint(message_bp)
+    
+    from app.routes.tasks import task_bp
+    app.register_blueprint(task_bp)
 
     @login_manager.user_loader
     def load_user(user_id):

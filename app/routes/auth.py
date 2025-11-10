@@ -43,27 +43,26 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        username_or_email = getattr(form, 'username_or_email', None)
-        if username_or_email is not None:
-            identifier = username_or_email.data
+    if request.method == 'POST':
+        username_or_email = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.query.filter(
+            (User.username == username_or_email) | (User.email == username_or_email)
+        ).first()
+        
+        if user and user.check_password(password):
+            if user.is_active:
+                login_user(user)
+                flash(f'Welcome back, {user.username}!', 'success')
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            else:
+                flash('Your account has been deactivated. Please contact admin.', 'danger')
         else:
-            # fallback if your form uses separate fields
-            identifier = getattr(form, 'username', None)
-            identifier = (identifier.data if identifier else None) or getattr(form, 'email', None).data
-
-        # Here you would normally check credentials
-        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            flash(f"Logged in as {identifier}", "success")
-            return redirect(url_for('dashboard.index'))  # redirect to dashboard
-        else:
-            flash("Invalid username/email or password.", "danger")
-
-    # GET request or validation failed
-    return render_template('auth/login.html', form=form)
+            flash('Invalid username/email or password.', 'danger')
+    
+    return render_template('auth/login.html')
 
 @auth_bp.route('/logout')
 def logout():

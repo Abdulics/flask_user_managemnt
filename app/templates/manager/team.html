@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}My Team{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12"><h1 class="mb-4"><i class="bi bi-people"></i> My Team</h1></div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if subordinates %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead><tr><th>Name</th><th>Position</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for employee in subordinates %}
+                            <tr>
+                                <td>{{ employee.full_name }}</td>
+                                <td>{{ employee.position or 'N/A' }}</td>
+                                <td>{{ employee.department.name if employee.department else 'N/A' }}</td>
+                                <td>{{ employee.email }}</td>
+                                <td>
+                                    {% if employee.user %}
+                                    <a href="{{ url_for('manager.edit_subordinate', id=employee.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No Account</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No team members yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

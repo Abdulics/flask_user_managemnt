@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="card">
+            <div class="card-header"><h4 class="mb-0"><i class="bi bi-person-circle"></i> My Profile</h4></div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Username:</strong></div>
+                    <div class="col-sm-8">{{ current_user.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Email:</strong></div>
+                    <div class="col-sm-8">{{ current_user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Role:</strong></div>
+                    <div class="col-sm-8"><span class="badge bg-secondary">{{ current_user.role }}</span></div>
+                </div>
+                {% if current_user.employee %}
+                <hr>
+                <h5 class="mb-3">Employee Information</h5>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Full Name:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.full_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Position:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.position or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Department:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.department.name if current_user.employee.department else 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Manager:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.manager.full_name if current_user.employee.manager else 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Phone:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.phone or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Hire Date:</strong></div>
+                    <div class="col-sm-8">{{ current_user.employee.hire_date.strftime('%Y-%m-%d') if current_user.employee.hire_date else 'N/A' }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

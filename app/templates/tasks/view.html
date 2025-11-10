@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}View Task{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="card">
+            <div class="card-header"><h4 class="mb-0">{{ task.title }}</h4></div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8"><span class="badge badge-status-{{ task.status }}">{{ task.status|replace('_', ' ')|capitalize }}</span></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Priority:</strong></div>
+                    <div class="col-sm-8"><span class="badge badge-priority-{{ task.priority }}">{{ task.priority|capitalize }}</span></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Assigned To:</strong></div>
+                    <div class="col-sm-8">{{ task.assigned_to.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Created By:</strong></div>
+                    <div class="col-sm-8">{{ task.created_by.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Due Date:</strong></div>
+                    <div class="col-sm-8">{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No deadline' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Created:</strong></div>
+                    <div class="col-sm-8">{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                {% if task.description %}
+                <hr>
+                <div class="mb-3">
+                    <strong>Description:</strong><br>
+                    {{ task.description }}
+                </div>
+                {% endif %}
+                {% if task.assigned_to_id == current_user.id %}
+                <hr>
+                <form method="POST" action="{{ url_for('tasks.update_status', id=task.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="status" class="form-label"><strong>Update Status:</strong></label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update Status</button>
+                </form>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('tasks.my_tasks') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Tasks</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

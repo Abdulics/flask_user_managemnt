@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Sent Messages{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-send"></i> Sent Messages</h1>
+            <div><a href="{{ url_for('messages.compose') }}" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Compose</a>
+            <a href="{{ url_for('messages.inbox') }}" class="btn btn-secondary"><i class="bi bi-envelope"></i> Inbox</a></div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if messages %}
+                <div class="list-group list-group-flush">
+                    {% for message in messages %}
+                    <a href="{{ url_for('messages.view_message', id=message.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ message.subject }}</h6>
+                            <small>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1"><small>To: {{ message.recipient.username }}</small></p>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No sent messages.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
