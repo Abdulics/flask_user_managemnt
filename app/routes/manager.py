@@ -11,8 +11,7 @@ manager_bp = Blueprint('manager', __name__, url_prefix='/manager')
 
 @manager_bp.route('/dashboard')
 @login_required
-@role_required(Role.MANAGER)
-@role_required(Role.ADMIN)
+@role_required(Role.ADMIN, Role.MANAGER)
 def manager_dashboard():
     if not current_user.employee:
         flash('Manager account not linked to employee record.', 'danger')
@@ -32,8 +31,7 @@ def manager_dashboard():
 
 @manager_bp.route('/team')
 @login_required
-@role_required(Role.MANAGER)
-@role_required(Role.ADMIN)
+@role_required(Role.ADMIN, Role.MANAGER)
 def view_team():
     if not current_user.employee:
         flash('Manager account not linked to employee record.', 'danger')
@@ -45,8 +43,7 @@ def view_team():
 
 @manager_bp.route('/team/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-@role_required(Role.MANAGER)
-@role_required(Role.ADMIN)
+@role_required(Role.ADMIN, Role.MANAGER)
 def edit_subordinate(id):
     employee = Employee.query.get_or_404(id)
     

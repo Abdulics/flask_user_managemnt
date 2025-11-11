@@ -3,9 +3,8 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_required
 from app import db
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask_login import login_required
 from datetime import datetime
-from functools import wraps
 from app.models.address import Address
 from app.models.department import Department
 from app.models.employees import Employee

@@ -27,11 +27,8 @@ def my_tasks():
 
 @task_bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@role_required(Role.ADMIN, Role.MANAGER)
 def create_task():
-    if not (current_user.is_admin() or current_user.is_manager()):
-        flash('Only managers and admins can create tasks.', 'danger')
-        return redirect(url_for('tasks.my_tasks'))
-    
     if request.method == 'POST':
         task = Task(
             title=request.form.get('title'),
@@ -95,8 +92,7 @@ def update_status(id):
 
 @task_bp.route('/assigned')
 @login_required
-@role_required(Role.ADMIN)
-@role_required(Role.MANAGER)
+@role_required(Role.ADMIN, Role.MANAGER)
 def assigned_tasks():
     tasks = Task.query.filter_by(created_by_id=current_user.id).order_by(Task.created_at.desc()).all()
     return render_template('tasks/assigned.html', tasks=tasks)
