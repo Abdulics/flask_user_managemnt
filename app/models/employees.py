@@ -1,36 +1,35 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
-from app.models.user import User
+from app.models.user import Role, User
 
 class Employee(db.Model):
     __tablename__ = 'employees'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
-    employee_id = db.Column(db.String(20), unique=True, nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
-    department = db.Column(db.String(100))
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    phone = db.Column(db.String(20))
     position = db.Column(db.String(100))
-    hire_date = db.Column(db.DateTime, default=datetime.utcnow)
+    role = db.Column(db.Enum(Role), default=Role.EMPLOYEE, nullable=False)
+    hire_date = db.Column(db.Date)
     salary = db.Column(db.Float)
-    manager_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
-
-    # Relationships
-    user = db.relationship('User', backref=db.backref('employee', uselist=False))
+    emergency_contact = db.Column(db.String(100))
+    emergency_phone = db.Column(db.String(20))
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    manager_id = db.Column(db.Integer, db.ForeignKey('employees.id'), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    
+    user = db.relationship('User', back_populates='employee', uselist=False)
+    addresses = db.relationship('Address', backref='employee', lazy=True)
+    department = db.relationship('Department', back_populates='employees')
     manager = db.relationship('Employee', remote_side=[id], backref='subordinates')
-    addresses = db.relationship('Address', backref='employee', lazy=True)  # link to Address table
 
-    def __init__(self, user_id, employee_id, first_name, last_name, department=None, position=None, salary=None, manager_id=None):
-        self.user_id = user_id
-        self.employee_id = employee_id
-        self.first_name = first_name
-        self.last_name = last_name
-        self.department = department
-        self.position = position
-        self.salary = salary
-        self.manager_id = manager_id
-
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
     def __repr__(self):
         return f'<Employee {self.employee_id} - {self.first_name} {self.last_name}>'
 

@@ -1,9 +1,15 @@
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, flash, redirect, url_for, request
-from app.forms.dashboard_forms import DashboardActionForm
-from flask_login import login_required, current_user
+from flask_login import login_required
 from app import db
-
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_required, current_user
+from datetime import datetime
+from functools import wraps
+from app.models.address import Address
+from app.models.department import Department
+from app.models.employees import Employee
+from app.models.team import Team
 from app.models.user import Role, User
 from app.utils.decorators import role_required
 
@@ -16,27 +22,12 @@ def manage_users():
     users = db.session.execute(db.select(User).order_by(User.username)).scalars().all()
     return render_template('admin/manage_users.html', users=users)
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
-from datetime import datetime
-from functools import wraps
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin():
-            flash('You need admin privileges to access this page.', 'danger')
-            return redirect(url_for('dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 @admin_bp.route('/dashboard')
 @login_required
-@admin_required
 @role_required(Role.ADMIN)
 def admin_dashboard():
     total_employees = Employee.query.count()
@@ -56,7 +47,7 @@ def admin_dashboard():
 
 @admin_bp.route('/employees')
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def list_employees():
     employees = Employee.query.all()
     return render_template('admin/employees.html', employees=employees)
@@ -64,9 +55,11 @@ def list_employees():
 
 @admin_bp.route('/employees/create', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def create_employee():
     if request.method == 'POST':
+        role_value = request.form.get('role')
+
         employee = Employee(
             first_name=request.form.get('first_name'),
             last_name=request.form.get('last_name'),
@@ -75,17 +68,31 @@ def create_employee():
             position=request.form.get('position'),
             hire_date=datetime.strptime(request.form.get('hire_date'), '%Y-%m-%d').date() if request.form.get('hire_date') else None,
             salary=float(request.form.get('salary')) if request.form.get('salary') else None,
-            address=request.form.get('address'),
             emergency_contact=request.form.get('emergency_contact'),
             emergency_phone=request.form.get('emergency_phone'),
             department_id=int(request.form.get('department_id')) if request.form.get('department_id') else None,
-            manager_id=int(request.form.get('manager_id')) if request.form.get('manager_id') else None
+            manager_id=int(request.form.get('manager_id')) if request.form.get('manager_id') else None,
+            role=Role[role_value.upper()] if role_value else Role.EMPLOYEE
         )
-        
+
         try:
             db.session.add(employee)
             db.session.commit()
-            flash(f'Employee {employee.full_name} created successfully!', 'success')
+
+            address = Address(
+            employee_id=employee.id,  
+            type=request.form.get('type'),
+            street=request.form.get('street'),
+            city=request.form.get('city'),
+            state=request.form.get('state'),
+            postal_code=request.form.get('postal_code'),
+            country=request.form.get('country')
+        )
+
+            # Add and commit the address
+            db.session.add(address)
+            db.session.commit()
+            flash(f'Employee {employee.full_name} {employee.last_name} created successfully!', 'success')
             return redirect(url_for('admin.list_employees'))
         except Exception as e:
             db.session.rollback()
@@ -98,7 +105,7 @@ def create_employee():
 
 @admin_bp.route('/employees/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def edit_employee(id):
     employee = Employee.query.get_or_404(id)
     
@@ -115,6 +122,7 @@ def edit_employee(id):
         employee.emergency_phone = request.form.get('emergency_phone')
         employee.department_id = int(request.form.get('department_id')) if request.form.get('department_id') else None
         employee.manager_id = int(request.form.get('manager_id')) if request.form.get('manager_id') else None
+        employee.role = Role[request.form.get('role').upper()] if request.form.get('role') else employee.role
         
         try:
             db.session.commit()
@@ -131,7 +139,7 @@ def edit_employee(id):
 
 @admin_bp.route('/employees/<int:id>/delete', methods=['POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def delete_employee(id):
     employee = Employee.query.get_or_404(id)
     
@@ -150,7 +158,7 @@ def delete_employee(id):
 
 @admin_bp.route('/users')
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def list_users():
     users = User.query.all()
     return render_template('admin/users.html', users=users)
@@ -158,14 +166,13 @@ def list_users():
 
 @admin_bp.route('/users/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def edit_user(id):
     user = User.query.get_or_404(id)
     
     if request.method == 'POST':
         user.username = request.form.get('username')
         user.email = request.form.get('email')
-        user.role = request.form.get('role')
         user.is_active = request.form.get('is_active') == 'on'
         
         new_password = request.form.get('new_password')
@@ -185,7 +192,7 @@ def edit_user(id):
 
 @admin_bp.route('/departments')
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def list_departments():
     departments = Department.query.all()
     return render_template('admin/departments.html', departments=departments)
@@ -193,7 +200,7 @@ def list_departments():
 
 @admin_bp.route('/departments/create', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def create_department():
     if request.method == 'POST':
         department = Department(
@@ -215,7 +222,7 @@ def create_department():
 
 @admin_bp.route('/teams')
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def list_teams():
     teams = Team.query.all()
     return render_template('admin/teams.html', teams=teams)
@@ -223,7 +230,7 @@ def list_teams():
 
 @admin_bp.route('/teams/create', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@role_required(Role.ADMIN)
 def create_team():
     if request.method == 'POST':
         team = Team(

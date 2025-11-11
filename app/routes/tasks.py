@@ -2,8 +2,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
 from app.models.task import Task
-from app.models.user import User
+from app.models.user import Role, User
 from datetime import datetime
+
+from app.utils.decorators import role_required
 
 task_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -93,11 +95,8 @@ def update_status(id):
 
 @task_bp.route('/assigned')
 @login_required
+@role_required(Role.ADMIN)
+@role_required(Role.MANAGER)
 def assigned_tasks():
-    if not (current_user.is_admin() or current_user.is_manager()):
-        flash('Only managers and admins can view assigned tasks.', 'danger')
-        return redirect(url_for('tasks.my_tasks'))
-    
     tasks = Task.query.filter_by(created_by_id=current_user.id).order_by(Task.created_at.desc()).all()
-    
     return render_template('tasks/assigned.html', tasks=tasks)

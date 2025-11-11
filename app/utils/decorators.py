@@ -9,7 +9,7 @@ def role_required(role):
             if not current_user.is_authenticated:
                 flash("Please log in first.", "warning")
                 return redirect(url_for('auth.login'))
-            if current_user.role != role:
+            if current_user.employee.role != role:
                 flash("You don’t have permission to view this page.", "danger")
                 return redirect(url_for('main.dashboard'))
             return f(*args, **kwargs)

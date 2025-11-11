@@ -15,5 +15,8 @@ After wards can run commands for below reasons
 
 `flask db upgrade` → whenever you want to apply those changes
 
+`flask init-db` to initialize the database with admin user, tun this first time.
+
+
 
 

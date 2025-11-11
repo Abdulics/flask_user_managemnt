@@ -10,13 +10,6 @@ class Role(Enum):
     MANAGER = "manager"
     EMPLOYEE = "employee"
 
-# association table for many-to-many User <-> Team
-team_members = db.Table(
-    "team_members",
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
-    db.Column("team_id", db.Integer, db.ForeignKey("team.id"), primary_key=True),
-)
-
 class TimestampMixin:
     """Reusable timestamp fields."""
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -33,39 +26,25 @@ class User(UserMixin, db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
 
     # store hashed password (protected attribute name)
     _password_hash = db.Column("password_hash", db.String(255), nullable=False)
 
     is_active = db.Column(db.Boolean, nullable=False, default=True)
-    role = db.Column(db.Enum(Role), default=Role.EMPLOYEE, nullable=False)
 
     bio = db.Column(db.Text, nullable=True)
     user_metadata = db.Column(db.JSON, nullable=False, default=dict)  # free-form user metadata
     last_login = db.Column(db.DateTime, nullable=True)
 
-    # relationship to Team model (define Team in another module). 'members' backref on Team.
-    teams = db.relationship(
-        "Team",
-        secondary=team_members,
-        backref=db.backref("members", lazy="dynamic"),
-        lazy="dynamic",
-    )
-
-    # relationship to Task model
-    tasks = db.relationship(
-        "Task",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        lazy="dynamic"  # keep consistent with your preference
-    )
+    employee = db.relationship('Employee', back_populates='user')
+    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', back_populates='sender', lazy='dynamic')
+    received_messages = db.relationship('Message', foreign_keys='Message.recipient_id', back_populates='recipient', lazy='dynamic')
+    assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', back_populates='assigned_to', lazy='dynamic')
+    created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', back_populates='created_by', lazy='dynamic')
 
     # relationship to Attendance model
-    attendances = db.relationship(
-        "Attendance",
-          back_populates="user", 
-          lazy="dynamic"
-    )
+    attendances = db.relationship( "Attendance", back_populates="user", lazy="dynamic")
 
 
     def __repr__(self) -> str:
@@ -123,11 +102,3 @@ class User(UserMixin, db.Model, TimestampMixin):
             self.metadata = data["metadata"]
         if set_password and "password" in data:
             self.password = data["password"]
-
-    # convenience helpers for team membership
-    def add_to_team(self, team) -> None:
-        if team not in self.teams:
-            self.teams.append(team)
-
-    def remove_from_team(self, team) -> None:
-        self.teams.remove(team)

@@ -66,15 +66,67 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="salary" class="form-label">Salary</label>
-                        <input type="number" step="0.01" class="form-control" id="salary" name="salary">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">Role Type</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="" disabled>Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="employee" selected>Employee</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="salary" class="form-label">Salary</label>
+                            <input type="number" step="0.01" class="form-control" id="salary" name="salary">
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Address</label>
-                        <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Address Type</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="" selected disabled>Select type</option>
+                                <option value="Home">Home</option>
+                                <option value="Work">Work</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="street" class="form-label">Street</label>
+                            <input type="text" class="form-control" id="street" name="street" placeholder="123 Main St" required>
+                        </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="state" class="form-label">State / Province</label>
+                            <input type="text" class="form-control" id="state" name="state" placeholder="State or Province">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="ZIP or Postal Code">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="country" class="form-label">Country</label>
+                            <select class="form-select" id="country" name="country" required>
+                                <option value="" selected disabled>Select country</option>
+                                <option value="United States">United States</option>
+                                <option value="Canada">Canada</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">

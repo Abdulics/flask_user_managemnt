@@ -12,7 +12,7 @@
     {% if current_user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
                 <i class="bi bi-people-fill"></i> Team Manager
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -21,12 +21,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
                     
-                    {% if current_user.is_admin() %}
+                    {% if current_user.employee.role.value == 'admin' %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-shield-lock"></i> Admin
@@ -40,7 +40,7 @@
                     </li>
                     {% endif %}
                     
-                    {% if current_user.is_manager() or current_user.is_admin() %}
+                    {% if current_user.employee.role.value == 'manager' or current_user.employee.role.value == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('manager.view_team') }}">
                             <i class="bi bi-people"></i> My Team
@@ -69,7 +69,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
-                            <span class="badge bg-secondary">{{ current_user.role }}</span>
+                            <span class="badge bg-secondary">{{ current_user.employee.role }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ url_for('employee.profile') }}">Profile</a></li>

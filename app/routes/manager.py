@@ -1,7 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_required, current_user    
-from app.models.user import Role
-from app.models.user import User    
+from app.models.user import Role 
 from app.models.employees import Employee
 from app.models.task import Task
 from app.utils.decorators import role_required
@@ -13,67 +12,65 @@ manager_bp = Blueprint('manager', __name__, url_prefix='/manager')
 @manager_bp.route('/dashboard')
 @login_required
 @role_required(Role.MANAGER)
+@role_required(Role.ADMIN)
 def manager_dashboard():
-    # Fetch team members
-    team_members = db.session.execute(
-        db.select(User).join(Employee).filter(Employee.manager_id == current_user.employee.id)
-    ).scalars().all()
-
-    # Fetch recent tasks assigned to team members
-    recent_tasks = db.session.execute(
-        db.select(Task).join(Employee).filter(Employee.manager_id == current_user.employee.id).order_by(Task.created_at.desc()).limit(5)
-    ).scalars().all()
-
-    return render_template('dashboard/manager_dashboard.html', team_members=team_members, recent_tasks=recent_tasks)
+    if not current_user.employee:
+        flash('Manager account not linked to employee record.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    subordinates = Employee.query.filter_by(manager_id=current_user.employee.id).all()
+    
+    subordinate_user_ids = [sub.user.id for sub in subordinates if sub.user]
+    pending_tasks = Task.query.filter(
+        Task.assigned_to_id.in_(subordinate_user_ids),
+        Task.status.in_(['pending', 'in_progress'])
+    ).count() if subordinate_user_ids else 0
+    
+    return render_template('manager/dashboard.html',
+                         subordinates=subordinates,
+                         pending_tasks=pending_tasks)
 
 @manager_bp.route('/team')
 @login_required
 @role_required(Role.MANAGER)
+@role_required(Role.ADMIN)
 def view_team():
-    team_members = db.session.execute(
-        db.select(User).join(Employee).filter(Employee.manager_id == current_user.employee.id)
-    ).scalars().all()
-    return render_template('manager/view_team.html', team_members=team_members)
+    if not current_user.employee:
+        flash('Manager account not linked to employee record.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    subordinates = Employee.query.filter_by(manager_id=current_user.employee.id).all()
+    return render_template('manager/team.html', subordinates=subordinates)
 
-@manager_bp.route('/tasks')
-@login_required 
-@role_required(Role.MANAGER)
-def view_tasks():
-    tasks = db.session.execute(
-        db.select(Task).join(Employee).filter(Employee.manager_id == current_user.employee.id)
-    ).scalars().all()
-    return render_template('manager/view_tasks.html', tasks=tasks)
 
-@manager_bp.route('/task/<int:task_id>')
+@manager_bp.route('/team/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 @role_required(Role.MANAGER)
-def view_task_detail(task_id):
-    task = db.session.get(Task, task_id)
-    if not task or task.employee.manager_id != current_user.employee.id:
-        return "Task not found or access denied", 404
-    return render_template('manager/view_task_detail.html', task=task)
-
-@manager_bp.route('/team/member/<int:member_id>')
-@login_required
-@role_required(Role.MANAGER)
-def view_team_member(member_id):
-    member = db.session.get(User, member_id)
-    if not member or member.employee.manager_id != current_user.employee.id:
-        return "Team member not found or access denied", 404
-    return render_template('manager/view_team_member.html', member=member)
-
-@manager_bp.route('/add_team_member', methods=['GET', 'POST'])
-@login_required
-@role_required(Role.MANAGER)
-def add_team_member():
-    # Implementation for adding a new team member
-    return "Add Team Member Page - To be implemented"
-
-
-@manager_bp.route('/manage_tasks', methods=['GET', 'POST'])
-@login_required
-@role_required(Role.MANAGER)
-def manage_tasks():
-    # Implementation for managing tasks
-    return "Manage Tasks Page - To be implemented"
-
+@role_required(Role.ADMIN)
+def edit_subordinate(id):
+    employee = Employee.query.get_or_404(id)
+    
+    if not current_user.employee or employee.manager_id != current_user.employee.id:
+        flash('You can only edit employees you manage.', 'danger')
+        return redirect(url_for('manager.view_team'))
+    
+    if not employee.user:
+        flash('This employee does not have a user account yet.', 'warning')
+        return redirect(url_for('manager.view_team'))
+    
+    if request.method == 'POST':
+        employee.user.username = request.form.get('username')
+        
+        new_password = request.form.get('new_password')
+        if new_password:
+            employee.user.set_password(new_password)
+        
+        try:
+            db.session.commit()
+            flash(f'User account for {employee.full_name} updated successfully!', 'success')
+            return redirect(url_for('manager.view_team'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating user: {str(e)}', 'danger')
+    
+    return render_template('manager/edit_subordinate.html', employee=employee)
