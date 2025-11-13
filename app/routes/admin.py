@@ -18,6 +18,8 @@ admin_admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @role_required(Role.ADMIN)
 def manage_users():
+    from flask import url_for
+    print(url_for('static', filename='css/style.css'))
     users = db.session.execute(db.select(User).order_by(User.username)).scalars().all()
     return render_template('admin/manage_users.html', users=users)
 

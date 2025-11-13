@@ -1,8 +1,8 @@
-"""your comment eg intial setup
+"""initial setup
 
-Revision ID: d22682af8481
+Revision ID: eeeca828ec5a
 Revises: 
-Create Date: 2025-11-10 15:02:53.053327
+Create Date: 2025-11-12 20:14:48.569506
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd22682af8481'
+revision = 'eeeca828ec5a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,18 +26,67 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('employees',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('first_name', sa.String(length=50), nullable=False),
+    sa.Column('last_name', sa.String(length=50), nullable=False),
+    sa.Column('email', sa.String(length=120), nullable=False),
+    sa.Column('phone', sa.String(length=20), nullable=True),
+    sa.Column('position', sa.String(length=100), nullable=True),
+    sa.Column('role', sa.Enum('ADMIN', 'MANAGER', 'EMPLOYEE', name='role'), nullable=False),
+    sa.Column('hire_date', sa.Date(), nullable=True),
+    sa.Column('salary', sa.Float(), nullable=True),
+    sa.Column('emergency_contact', sa.String(length=100), nullable=True),
+    sa.Column('emergency_phone', sa.String(length=20), nullable=True),
+    sa.Column('department_id', sa.Integer(), nullable=True),
+    sa.Column('manager_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
+    sa.ForeignKeyConstraint(['manager_id'], ['employees.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('employees', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_employees_email'), ['email'], unique=True)
+
+    op.create_table('addresses',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('employee_id', sa.Integer(), nullable=False),
+    sa.Column('type', sa.String(length=50), nullable=False),
+    sa.Column('street', sa.String(length=200), nullable=False),
+    sa.Column('city', sa.String(length=100), nullable=False),
+    sa.Column('state', sa.String(length=100), nullable=True),
+    sa.Column('postal_code', sa.String(length=20), nullable=True),
+    sa.Column('country', sa.String(length=100), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('team',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('department_id', sa.Integer(), nullable=True),
+    sa.Column('lead_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
+    sa.ForeignKeyConstraint(['lead_id'], ['employees.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=80), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
+    sa.Column('employee_id', sa.Integer(), nullable=True),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('role', sa.Enum('ADMIN', 'MANAGER', 'EMPLOYEE', name='role'), nullable=False),
     sa.Column('bio', sa.Text(), nullable=True),
     sa.Column('user_metadata', sa.JSON(), nullable=False),
     sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('user', schema=None) as batch_op:
@@ -56,28 +105,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id', 'date', name='uix_user_date')
     )
-    op.create_table('employees',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('first_name', sa.String(length=50), nullable=False),
-    sa.Column('last_name', sa.String(length=50), nullable=False),
-    sa.Column('email', sa.String(length=120), nullable=False),
-    sa.Column('phone', sa.String(length=20), nullable=True),
-    sa.Column('position', sa.String(length=100), nullable=True),
-    sa.Column('hire_date', sa.Date(), nullable=True),
-    sa.Column('salary', sa.Float(), nullable=True),
-    sa.Column('emergency_contact', sa.String(length=100), nullable=True),
-    sa.Column('emergency_phone', sa.String(length=20), nullable=True),
-    sa.Column('department_id', sa.Integer(), nullable=True),
-    sa.Column('manager_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
-    sa.ForeignKeyConstraint(['manager_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    with op.batch_alter_table('employees', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_employees_email'), ['email'], unique=True)
-
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('subject', sa.String(length=200), nullable=False),
@@ -119,50 +146,25 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('addresses',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.String(length=50), nullable=False),
-    sa.Column('street', sa.String(length=200), nullable=False),
-    sa.Column('city', sa.String(length=100), nullable=False),
-    sa.Column('state', sa.String(length=100), nullable=True),
-    sa.Column('postal_code', sa.String(length=20), nullable=True),
-    sa.Column('country', sa.String(length=100), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('team',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('department_id', sa.Integer(), nullable=True),
-    sa.Column('lead_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
-    sa.ForeignKeyConstraint(['lead_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('team')
-    op.drop_table('addresses')
     op.drop_table('timeoffs')
     op.drop_table('tasks')
     op.drop_table('messages')
-    with op.batch_alter_table('employees', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_employees_email'))
-
-    op.drop_table('employees')
     op.drop_table('attendances')
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_user_username'))
         batch_op.drop_index(batch_op.f('ix_user_email'))
 
     op.drop_table('user')
+    op.drop_table('team')
+    op.drop_table('addresses')
+    with op.batch_alter_table('employees', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_employees_email'))
+
+    op.drop_table('employees')
     op.drop_table('departments')
     # ### end Alembic commands ###

@@ -33,6 +33,7 @@ def init_db_command():
             email='admin@teammanager.com',
             phone='555-0000',
             position='System Administrator',
+            role=Role.ADMIN,
             hire_date=date.today(),
             department_id=admin_dept.id
             )
@@ -42,7 +43,6 @@ def init_db_command():
         admin_user = User(
             username='admin',
             email='admin@teammanager.com',
-            role=Role.ADMIN,
             employee_id=admin_employee.id
             )
         admin_user.set_password('admin123')
