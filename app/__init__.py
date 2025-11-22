@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
 from flask_wtf.csrf import CSRFProtect
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -14,8 +14,8 @@ login_manager = LoginManager()
 @click.command(name='init-db')
 @with_appcontext
 def init_db_command():
-    from app.models.user import User, Role
-    from app.models.employees import Employee
+    from app.models.user import User
+    from app.models.employees import Employee, Role
     from app.models.department import Department
     from datetime import date
 
@@ -70,7 +70,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Import your models so Alembic can detect them
-    from app.models import user, team, message, address, task, employees, timeoff, attendance, department
+    from app.models import user, team, message, address, task, employees, timeoff, attendance, department, paystub, time_entry
 
     from app.routes.main_route import main_bp
     app.register_blueprint(main_bp)
@@ -98,6 +98,26 @@ def create_app():
     
     from app.routes.tasks import task_bp
     app.register_blueprint(task_bp)
+
+    from app.routes.attendance import attendance_bp
+    app.register_blueprint(attendance_bp)
+
+    from app.routes.timeoff import timeoff_bp
+    app.register_blueprint(timeoff_bp)
+
+    from app.routes.paystubs import paystub_bp
+    app.register_blueprint(paystub_bp)
+
+    from app.routes.time_tracking import time_tracking_bp
+    app.register_blueprint(time_tracking_bp)
+
+    @app.context_processor
+    def inject_active_time_entry():
+        from app.models.time_entry import TimeEntry
+        if not current_user.is_authenticated:
+            return {}
+        active_entry = TimeEntry.query.filter_by(user_id=current_user.id, clock_out=None).order_by(TimeEntry.clock_in.desc()).first()
+        return {"active_time_entry": active_entry}
 
     @app.errorhandler(404)
     def not_found_error(error):

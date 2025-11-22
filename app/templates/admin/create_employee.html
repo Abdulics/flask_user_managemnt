@@ -57,8 +57,8 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="manager_id" class="form-label">Manager</label>
-                            <select class="form-select" id="manager_id" name="manager_id">
-                                <option value="">Select Manager</option>
+                            <select class="form-select" id="manager_id" name="manager_id" required>
+                                <option value="" disabled selected>Select Manager</option>
                                 {% for mgr in managers %}
                                 <option value="{{ mgr.id }}">{{ mgr.full_name }}</option>
                                 {% endfor %}

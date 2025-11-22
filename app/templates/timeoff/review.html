@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Review Time Off{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="bi bi-briefcase"></i> {{ 'HR Time Off Queue' if is_hr else 'Team Time Off' }}</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead><tr><th>User</th><th>Type</th><th>Period</th><th>Status</th><th>Reason</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for r in requests %}
+                            <tr>
+                                <td>{{ r.user.username if r.user else 'Unknown' }}</td>
+                                <td>{{ r.type.value|capitalize }}</td>
+                                <td>{{ r.start_date }} - {{ r.end_date }}</td>
+                                <td><span class="badge bg-secondary">{{ r.status.value|replace('_',' ')|capitalize }}</span></td>
+                                <td>{{ r.reason or '-' }}</td>
+                                <td class="d-flex gap-2">
+                                    {% if not is_hr and r.status == r.status.PENDING %}
+                                    <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='approve') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button class="btn btn-sm btn-success">Send to HR</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='deny') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button class="btn btn-sm btn-danger">Deny</button>
+                                    </form>
+                                    {% elif is_hr and r.status == r.status.MANAGER_APPROVED %}
+                                    <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='approve') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='deny') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button class="btn btn-sm btn-danger">Deny</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted">No actions</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No requests to review.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

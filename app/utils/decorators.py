@@ -2,6 +2,7 @@ from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
 
+
 def role_required(*roles):
     """
     Accepts one or more roles.
@@ -14,14 +15,13 @@ def role_required(*roles):
                 flash("Please log in first.", "warning")
                 return redirect(url_for('auth.login'))
 
-            # Ensure employee exists
             if not current_user.employee:
-                flash("You don’t have permission to view this page.", "danger")
+                flash("Your account is missing an employee record. Please contact HR/admin.", "danger")
                 return redirect(url_for('main.dashboard'))
 
-            # Allow if current role is in the allowed roles
             if current_user.employee.role not in roles:
-                flash("You don’t have permission to view this page.", "danger")
+                allowed = ", ".join(r.value.capitalize() for r in roles)
+                flash(f"Access denied. This page is for: {allowed}.", "danger")
                 return redirect(url_for('main.dashboard'))
 
             return f(*args, **kwargs)

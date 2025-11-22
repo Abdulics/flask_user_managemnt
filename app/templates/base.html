@@ -26,7 +26,7 @@
                         </a>
                     </li>
                     
-                    {% if current_user.employee.role.value == 'admin' %}
+                    {% if current_user.role_name == 'admin' %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-shield-lock"></i> Admin
@@ -40,7 +40,7 @@
                     </li>
                     {% endif %}
                     
-                    {% if current_user.employee.role.value == 'manager' or current_user.employee.role.value == 'admin' %}
+                    {% if current_user.role_name in ['manager', 'admin'] %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('manager.view_team') }}">
                             <i class="bi bi-people"></i> My Team
@@ -51,6 +51,33 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('tasks.my_tasks') }}">
                             <i class="bi bi-list-task"></i> Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('attendance.view_or_mark_attendance') }}">
+                            <i class="bi bi-clipboard-check"></i> Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('timeoff.my_timeoff') }}">
+                            <i class="bi bi-calendar-event"></i> Time Off
+                        </a>
+                    </li>
+                    {% if current_user.role_name in ['admin', 'manager'] and current_user.employee and current_user.employee.department and current_user.employee.department.name|lower == 'human resources' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('timeoff.hr_queue') }}">
+                            <i class="bi bi-people-fill"></i> HR Queue
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('paystubs.my_paystubs') }}">
+                            <i class="bi bi-receipt"></i> Paystubs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('time_tracking.log') }}">
+                            <i class="bi bi-clock-history"></i> Time Log
                         </a>
                     </li>
                     
@@ -66,10 +93,17 @@
                 </ul>
                 
                 <ul class="navbar-nav">
+                    {% if active_time_entry %}
+                    <li class="nav-item d-flex align-items-center me-3">
+                        <span class="badge bg-success">
+                            Clocked in · <span id="nav-timer" data-start="{{ active_time_entry.clock_in.isoformat() }}Z">--:--:--</span>
+                        </span>
+                    </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
-                            <span class="badge bg-secondary">{{ current_user.employee.role.value.capitalize() }}</span>
+                            <span class="badge bg-secondary">{{ current_user.role_name|capitalize if current_user.role_name else 'N/A' }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ url_for('employee.profile') }}">Profile</a></li>
@@ -103,6 +137,7 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/time_tracker.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

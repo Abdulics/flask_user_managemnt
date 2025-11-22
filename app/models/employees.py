@@ -1,7 +1,12 @@
 from datetime import datetime, timezone
+from enum import Enum
 from app import db
-from app.models.user import Role, User
 
+class Role(Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    EMPLOYEE = "employee"
+    
 class Employee(db.Model):
     __tablename__ = 'employees'
 
@@ -31,19 +36,20 @@ class Employee(db.Model):
         return f"{self.first_name} {self.last_name}"
     
     def __repr__(self):
-        return f'<Employee {self.employee_id} - {self.first_name} {self.last_name}>'
+        return f'<Employee id={self.id} name={self.full_name}>'
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'employee_id': self.employee_id,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'department': self.department,
-            'position': self.position,
-            'hire_date': self.hire_date.isoformat() if self.hire_date else None,
-            'salary': self.salary,
-            'manager_id': self.manager_id,
-            'addresses': [addr.to_dict() for addr in self.addresses]  # optional: include addresses
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "full_name": self.full_name,
+            "email": self.email,
+            "role": self.role.value if self.role else None,
+            "department": self.department.name if self.department else None,
+            "position": self.position,
+            "hire_date": self.hire_date.isoformat() if self.hire_date else None,
+            "salary": self.salary,
+            "manager_id": self.manager_id,
+            "addresses": [addr.to_dict() for addr in self.addresses],
         }

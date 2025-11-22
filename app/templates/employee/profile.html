@@ -16,7 +16,11 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-sm-4"><strong>Role:</strong></div>
-                    <div class="col-sm-8"><span class="badge bg-secondary">{{ current_user.role }}</span></div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-secondary">
+                            {{ current_user.role_name|capitalize if current_user.role_name else 'N/A' }}
+                        </span>
+                    </div>
                 </div>
                 {% if current_user.employee %}
                 <hr>

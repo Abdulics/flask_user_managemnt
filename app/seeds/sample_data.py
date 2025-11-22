@@ -6,12 +6,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from datetime import datetime, date, timedelta, timezone
 from app import db, create_app
-from app.models.user import Role, User
+from app.models.user import User
 from app.models.department import Department
 from app.models.team import Team
 from app.models.task import Task
 from app.models.address import Address
-from app.models.employees import Employee
+from app.models.employees import Employee, Role
 from app.models.timeoff import TimeOff, TimeOffType, TimeOffStatus
 from app.models.attendance import Attendance, AttendanceStatus
 

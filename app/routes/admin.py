@@ -7,9 +7,9 @@ from flask_login import login_required
 from datetime import datetime
 from app.models.address import Address
 from app.models.department import Department
-from app.models.employees import Employee
+from app.models.employees import Employee, Role
 from app.models.team import Team
-from app.models.user import Role, User
+from app.models.user import User
 from app.utils.decorators import role_required
 
 admin_admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -60,6 +60,13 @@ def list_employees():
 def create_employee():
     if request.method == 'POST':
         role_value = request.form.get('role')
+        manager_id_raw = request.form.get('manager_id')
+        managers_exist = Employee.query.count() > 0
+
+        # Enforce manager assignment when managers already exist
+        if managers_exist and not manager_id_raw:
+            flash('Please assign a manager for this employee.', 'danger')
+            return redirect(url_for('admin.create_employee'))
 
         employee = Employee(
             first_name=request.form.get('first_name'),
@@ -72,7 +79,7 @@ def create_employee():
             emergency_contact=request.form.get('emergency_contact'),
             emergency_phone=request.form.get('emergency_phone'),
             department_id=int(request.form.get('department_id')) if request.form.get('department_id') else None,
-            manager_id=int(request.form.get('manager_id')) if request.form.get('manager_id') else None,
+            manager_id=int(manager_id_raw) if manager_id_raw else None,
             role=Role[role_value.upper()] if role_value else Role.EMPLOYEE
         )
 
@@ -111,6 +118,12 @@ def edit_employee(id):
     employee = Employee.query.get_or_404(id)
     
     if request.method == 'POST':
+        manager_id_raw = request.form.get('manager_id')
+        managers_exist = Employee.query.filter(Employee.id != id).count() > 0
+        if managers_exist and not manager_id_raw:
+            flash('Please assign a manager for this employee.', 'danger')
+            return redirect(url_for('admin.edit_employee', id=id))
+
         employee.first_name = request.form.get('first_name')
         employee.last_name = request.form.get('last_name')
         employee.email = request.form.get('email')
@@ -122,7 +135,7 @@ def edit_employee(id):
         employee.emergency_contact = request.form.get('emergency_contact')
         employee.emergency_phone = request.form.get('emergency_phone')
         employee.department_id = int(request.form.get('department_id')) if request.form.get('department_id') else None
-        employee.manager_id = int(request.form.get('manager_id')) if request.form.get('manager_id') else None
+        employee.manager_id = int(manager_id_raw) if manager_id_raw else None
         employee.role = Role[request.form.get('role').upper()] if request.form.get('role') else employee.role
         
         try:

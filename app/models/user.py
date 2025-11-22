@@ -2,13 +2,8 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from enum import Enum
 from app import db
-
-class Role(Enum):
-    ADMIN = "admin"
-    MANAGER = "manager"
-    EMPLOYEE = "employee"
+from app.models.employees import Role
 
 class TimestampMixin:
     """Reusable timestamp fields."""
@@ -46,7 +41,6 @@ class User(UserMixin, db.Model, TimestampMixin):
     # relationship to Attendance model
     attendances = db.relationship( "Attendance", back_populates="user", lazy="dynamic")
 
-
     def __repr__(self) -> str:
         return f"<User id={self.id} username={self.username!r} email={self.email!r}>"
 
@@ -72,6 +66,28 @@ class User(UserMixin, db.Model, TimestampMixin):
     def touch_last_login(self) -> None:
         """Set last_login to now (useful after successful auth)."""
         self.last_login = datetime.now(datetime.timezone.utc)
+
+    @property
+    def role(self) -> Optional[Role]:
+        """Return the employee role, if linked."""
+        return self.employee.role if self.employee else None
+
+    @property
+    def role_name(self) -> Optional[str]:
+        """Lowercase role name for quick comparisons."""
+        return self.role.value.lower() if self.role else None
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == Role.ADMIN
+
+    @property
+    def is_manager(self) -> bool:
+        return self.role == Role.MANAGER
+
+    @property
+    def is_employee(self) -> bool:
+        return self.role == Role.EMPLOYEE
 
     def to_dict(self, include_email: bool = False) -> Dict[str, Any]:
         """Serialize user to dict. Avoid exposing sensitive fields by default."""

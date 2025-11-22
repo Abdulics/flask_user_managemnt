@@ -15,5 +15,5 @@ class Team(db.Model):
     lead = db.relationship('Employee', foreign_keys=[lead_id])
 
     def __repr__(self):
-        return f"<Team id={self.id} name={self.name!r} slug={self.slug!r}>"
+        return f"<Team id={self.id} name={self.name!r}>"
 

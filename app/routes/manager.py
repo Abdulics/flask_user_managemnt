@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_required, current_user    
-from app.models.user import Role 
-from app.models.employees import Employee
+from app.models.employees import Employee, Role
 from app.models.task import Task
 from app.utils.decorators import role_required
 from app import db

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Paystubs{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1 class="mb-3"><i class="bi bi-receipt"></i> My Paystubs</h1>
+        {% if current_user.role_name == 'admin' %}
+        <a class="btn btn-primary" href="{{ url_for('paystubs.create_paystub') }}"><i class="bi bi-plus-circle"></i> Create Paystub</a>
+        {% endif %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if paystubs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead><tr><th>Period</th><th>Gross</th><th>Taxes</th><th>Deductions</th><th>Net</th><th>Issued</th></tr></thead>
+                        <tbody>
+                            {% for p in paystubs %}
+                            <tr>
+                                <td>{{ p.pay_period_start }} - {{ p.pay_period_end }}</td>
+                                <td>${{ p.gross_pay }}</td>
+                                <td>${{ p.taxes }}</td>
+                                <td>${{ p.deductions }}</td>
+                                <td><strong>${{ p.net_pay }}</strong></td>
+                                <td>{{ p.issued_at.strftime('%Y-%m-%d') if p.issued_at else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No paystubs available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

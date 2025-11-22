@@ -9,6 +9,30 @@
     </div>
 </div>
 
+{% if active_time_entry %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-success d-flex justify-content-between align-items-center">
+            <div><i class="bi bi-clock"></i> You are clocked in.</div>
+            <div class="fw-bold" id="dash-timer" data-start="{{ active_time_entry.clock_in.isoformat() }}Z">--:--:--</div>
+            <form method="POST" action="{{ url_for('time_tracking.clock_out') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-sm btn-light"><i class="bi bi-stop-fill"></i> Clock Out</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <form method="POST" action="{{ url_for('time_tracking.clock_in') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-success"><i class="bi bi-play-fill"></i> Clock In</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-md-6">
         <div class="card stat-card">

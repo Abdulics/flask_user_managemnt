@@ -13,7 +13,9 @@ def index():
 @login_required
 def dashboard():
     # Route users to their role-specific dashboards
-    role = current_user.employee.role.value.lower()
+    role = getattr(current_user, "role_name", None)
+    if not role:
+        return redirect(url_for('auth.logout'))
 
     if role == "admin":
         return redirect(url_for('admin.admin_dashboard'))

@@ -18,14 +18,12 @@ class Task(db.Model, TimestampMixin):
     assigned_to_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     due_date = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),onupdate=lambda: datetime.now(timezone.utc))
-    completed_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    completed_at = db.Column(db.DateTime, nullable=True, default=None)
     
     assigned_to = db.relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     created_by = db.relationship('User', foreign_keys=[created_by_id], back_populates='created_tasks')
 
     def __repr__(self):
-        return f"<Task id={self.id} title={self.title!r} completed={self.completed}>"
+        return f"<Task id={self.id} title={self.title!r} status={self.status}>"
 
     

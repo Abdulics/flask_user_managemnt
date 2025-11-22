@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
 from app.models.task import Task
-from app.models.user import Role, User
+from app.models.user import User
+from app.models.employees import Role
 from datetime import datetime
 
 from app.utils.decorators import role_required
@@ -58,7 +59,7 @@ def create_task():
 def view_task(id):
     task = Task.query.get_or_404(id)
     
-    if task.assigned_to_id != current_user.id and task.created_by_id != current_user.id and not current_user.is_admin():
+    if task.assigned_to_id != current_user.id and task.created_by_id != current_user.id and not current_user.is_admin:
         flash('You do not have permission to view this task.', 'danger')
         return redirect(url_for('tasks.my_tasks'))
     
@@ -70,7 +71,7 @@ def view_task(id):
 def update_status(id):
     task = Task.query.get_or_404(id)
     
-    if task.assigned_to_id != current_user.id and not current_user.is_admin():
+    if task.assigned_to_id != current_user.id and not current_user.is_admin:
         flash('You do not have permission to update this task.', 'danger')
         return redirect(url_for('tasks.my_tasks'))
     

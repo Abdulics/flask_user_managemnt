@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_required, current_user
 from app import db
-from app.models.user import Role
 from app.utils.decorators import role_required
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -17,7 +16,11 @@ def index():
     db.session.commit()
 
     # Route users to their role-specific dashboards
-    role = current_user.role.value.lower()
+    role = current_user.role_name
+
+    if not role:
+        flash("Your account is missing a role. Please contact an administrator.", "danger")
+        return redirect(url_for('auth.logout'))
 
     if role == "admin":
         template = "dashboard/admin_dashboard.html"
@@ -33,7 +36,11 @@ def index():
 @dashboard_bp.route('/profile')
 @login_required
 def view_profile():
-    role = current_user.role.value.lower()
+    role = current_user.role_name
+
+    if not role:
+        flash("Your account is missing a role. Please contact an administrator.", "danger")
+        return redirect(url_for('auth.logout'))
 
     if role == "admin":
         template = "profile/view_profile_admin.html"

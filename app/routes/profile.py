@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from app.models.user import Role, User
+from app.models.user import User
+from app.models.employees import Role
 from app.utils.decorators import role_required
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
@@ -9,7 +10,11 @@ profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 @profile_bp.route('/view')
 @login_required
 def view_profile():
-    role = current_user.role.value.lower()
+    role = current_user.role_name
+    if not role:
+        flash("Your account is missing a role. Please contact an administrator.", "danger")
+        return redirect(url_for('auth.logout'))
+
     template = f"profile/view_profile_{role}.html"
     return render_template(template, user=current_user, form=None)
 
