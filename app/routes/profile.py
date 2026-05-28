@@ -30,7 +30,7 @@ def edit_profile():
 @login_required
 @role_required(Role.ADMIN)  # Custom decorator that checks current_user.role
 def edit_user_profile(user_id):
-    target_user = User.query.get_or_404(user_id)
+    target_user = db.get_or_404(User, user_id)
     return handle_edit_profile(target_user)
 
 # Shared logic

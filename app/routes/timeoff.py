@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
 from app.models.timeoff import TimeOff, TimeOffStatus, TimeOffType
 from app.models.employees import Employee, Role
+from app.models.department import Department
 from app.utils.decorators import role_required
 from app.forms.timeoff_forms import TimeOffRequestForm
 from app.models.message import Message
@@ -20,7 +21,23 @@ def _is_hr(user) -> bool:
     if not user.employee:
         return False
     dept = user.employee.department.name.lower() if user.employee.department else ""
-    return dept == "human resources" and user.role_name in ["manager", "admin"]
+    return dept == "human resources"
+
+
+def _can_review_team_timeoff(user) -> bool:
+    return user.is_admin or user.is_manager
+
+
+def _can_review_hr_timeoff(user) -> bool:
+    return user.is_admin or _is_hr(user)
+
+
+def _hr_user_ids() -> list[int]:
+    return [
+        emp.user.id
+        for emp in Employee.query.join(Employee.department).filter(db.func.lower(Department.name) == "human resources").all()
+        if emp.user
+    ]
 
 def _notify(user_from, user_to_id: int, subject: str, body: str):
     if not user_to_id:
@@ -52,6 +69,13 @@ def my_timeoff():
         if current_user.employee and current_user.employee.manager:
             timeoff.manager_id = current_user.employee.manager.user.id if current_user.employee.manager.user else None
         db.session.add(timeoff)
+        if timeoff.manager_id:
+            _notify(
+                current_user,
+                timeoff.manager_id,
+                "Time off request submitted",
+                f"{current_user.username} submitted a time-off request for {timeoff.start_date} to {timeoff.end_date}.",
+            )
         db.session.commit()
         flash('Time-off request submitted.', 'success')
         return redirect(url_for('timeoff.my_timeoff'))
@@ -62,14 +86,16 @@ def my_timeoff():
 
 @timeoff_bp.route('/team')
 @login_required
-@role_required(Role.ADMIN, Role.MANAGER)
 def review_team_requests():
     """Managers review subordinate requests; HR/admin can also view."""
-    if current_user.is_admin or _is_hr(current_user):
+    if not _can_review_team_timeoff(current_user):
+        flash("Access denied. Team time-off review is for managers and admins.", "danger")
+        return redirect(url_for('main.dashboard'))
+    if current_user.is_admin:
         requests = TimeOff.query.order_by(TimeOff.created_at.desc()).all()
     else:
         subordinate_ids = _get_subordinate_user_ids(current_user.employee.id)
-        requests = TimeOff.query.filter(TimeOff.user_id.in_(subordinate_ids)).order_by(TimeOff.created_at.desc()).all()
+        requests = TimeOff.query.filter(TimeOff.user_id.in_(subordinate_ids), TimeOff.status == TimeOffStatus.PENDING).order_by(TimeOff.created_at.desc()).all()
     return render_template('timeoff/review.html', requests=requests, is_hr=False)
 
 
@@ -77,7 +103,7 @@ def review_team_requests():
 @login_required
 def hr_queue():
     """HR review queue for manager-approved requests."""
-    if not (_is_hr(current_user) or current_user.is_admin):
+    if not _can_review_hr_timeoff(current_user):
         flash("Access denied. HR only.", "danger")
         return redirect(url_for('main.dashboard'))
     requests = TimeOff.query.filter_by(status=TimeOffStatus.MANAGER_APPROVED).order_by(TimeOff.created_at.desc()).all()
@@ -86,29 +112,45 @@ def hr_queue():
 
 @timeoff_bp.route('/<int:request_id>/<action>', methods=['POST'])
 @login_required
-@role_required(Role.ADMIN, Role.MANAGER)
 def act_on_request(request_id, action):
-    timeoff = TimeOff.query.get_or_404(request_id)
+    timeoff = db.get_or_404(TimeOff, request_id)
+    stage = request.form.get("stage")
 
-    is_hr_user = _is_hr(current_user) or current_user.is_admin
+    is_hr_stage = stage == "hr"
 
-    # Managers can only act on their subordinates
-    if current_user.is_manager and not is_hr_user:
+    if is_hr_stage and not _can_review_hr_timeoff(current_user):
+        flash("Access denied. HR only.", "danger")
+        return redirect(url_for('main.dashboard'))
+
+    if not is_hr_stage and not _can_review_team_timeoff(current_user):
+        flash("Access denied. Team time-off review is for managers and admins.", "danger")
+        return redirect(url_for('main.dashboard'))
+
+    # Managers can only act on their direct subordinates.
+    if not is_hr_stage and current_user.is_manager and not current_user.is_admin:
         if not timeoff.user.employee or timeoff.user.employee.manager_id != current_user.employee.id:
             flash('You cannot act on requests outside your team.', 'danger')
             return redirect(url_for('timeoff.review_team_requests'))
 
     # Manager step -> move to HR queue
-    if not is_hr_user:
+    if not is_hr_stage:
+        if timeoff.status != TimeOffStatus.PENDING:
+            flash('Only pending requests can be reviewed by a manager.', 'warning')
+            return redirect(url_for('timeoff.review_team_requests'))
         if action == 'approve':
             timeoff.status = TimeOffStatus.MANAGER_APPROVED
             timeoff.manager_id = current_user.id
             timeoff.manager_decision_at = datetime.now(timezone.utc)
+            _notify(current_user, timeoff.user_id, "Time off sent to HR", "Your manager approved your time-off request and sent it to HR.")
+            for hr_user_id in _hr_user_ids():
+                if hr_user_id != current_user.id:
+                    _notify(current_user, hr_user_id, "Time off awaiting HR review", f"{timeoff.user.username}'s time-off request is waiting in the HR queue.")
             flash('Request sent to HR for approval.', 'success')
         elif action == 'deny':
             timeoff.status = TimeOffStatus.DENIED
             timeoff.manager_id = current_user.id
             timeoff.manager_decision_at = datetime.now(timezone.utc)
+            _notify(current_user, timeoff.user_id, "Time off denied", "Your manager denied your time-off request.")
             flash('Request denied.', 'success')
         else:
             flash('Invalid action.', 'danger')
@@ -116,7 +158,10 @@ def act_on_request(request_id, action):
         return redirect(url_for('timeoff.review_team_requests'))
 
     # HR/admin step on manager-approved requests
-    if is_hr_user:
+    if is_hr_stage:
+        if timeoff.status != TimeOffStatus.MANAGER_APPROVED:
+            flash('Only manager-approved requests can be reviewed by HR.', 'warning')
+            return redirect(url_for('timeoff.hr_queue'))
         if action == 'approve':
             timeoff.approve()
             timeoff.hr_id = current_user.id
@@ -140,3 +185,20 @@ def act_on_request(request_id, action):
 
     flash('Invalid action.', 'danger')
     return redirect(url_for('timeoff.review_team_requests'))
+
+
+@timeoff_bp.route('/<int:request_id>/cancel', methods=['POST'])
+@login_required
+def cancel_request(request_id):
+    timeoff = db.get_or_404(TimeOff, request_id)
+    if timeoff.user_id != current_user.id:
+        flash('You can only cancel your own time-off requests.', 'danger')
+        return redirect(url_for('timeoff.my_timeoff'))
+    if timeoff.status != TimeOffStatus.PENDING:
+        flash('Only pending time-off requests can be cancelled.', 'warning')
+        return redirect(url_for('timeoff.my_timeoff'))
+
+    timeoff.cancel()
+    db.session.commit()
+    flash('Time-off request cancelled.', 'success')
+    return redirect(url_for('timeoff.my_timeoff'))

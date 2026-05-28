@@ -13,6 +13,7 @@ class Team(db.Model):
     
     department = db.relationship('Department', back_populates='teams')
     lead = db.relationship('Employee', foreign_keys=[lead_id])
+    members = db.relationship('Employee', back_populates='team', foreign_keys='Employee.team_id')
 
     def __repr__(self):
         return f"<Team id={self.id} name={self.name!r}>"

@@ -1,11 +1,417 @@
+:root {
+    --app-bg: #f6f8fb;
+    --app-surface: #ffffff;
+    --app-border: #d9e2ec;
+    --app-text: #152238;
+    --app-muted: #637083;
+    --app-accent: #2563eb;
+    --app-accent-soft: #e8f0ff;
+    --app-danger: #d92d20;
+    --app-success: #0f8a5f;
+}
+
 body {
-    background-color: #f5f5f5;
+    background-color: var(--app-bg);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--app-text);
 }
 
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
+}
+
+.app-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid var(--app-border);
+    box-shadow: 0 10px 30px rgba(21, 34, 56, 0.06);
+    backdrop-filter: blur(12px);
+}
+
+.app-navbar-container {
+    min-height: 4.25rem;
+    padding-inline: 1.25rem;
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--app-text);
+    letter-spacing: 0;
+}
+
+.app-brand:hover,
+.app-brand:focus {
+    color: var(--app-text);
+}
+
+.app-brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    color: #fff;
+    background: var(--app-accent);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.app-navbar-toggler {
+    border-color: var(--app-border);
+    border-radius: 8px;
+    padding: 0.45rem 0.65rem;
+}
+
+.app-navbar-toggler:focus {
+    box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.18);
+}
+
+.app-nav-main,
+.app-nav-actions {
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.app-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.75rem !important;
+    border-radius: 8px;
+    color: var(--app-muted);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link:focus {
+    color: var(--app-text);
+    background: #f0f4f8;
+}
+
+.app-nav-link.active {
+    color: var(--app-accent) !important;
+    background: var(--app-accent-soft);
+}
+
+.app-nav-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--app-danger);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.app-dropdown-menu {
+    min-width: 13rem;
+    padding: 0.4rem;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    box-shadow: 0 18px 38px rgba(21, 34, 56, 0.12);
+}
+
+.page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.5rem 0 1rem;
+}
+
+.page-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0;
+    color: var(--app-text);
+    font-size: 1.85rem;
+    font-weight: 750;
+    letter-spacing: 0;
+}
+
+.page-header p {
+    margin: 0.35rem 0 0;
+    color: var(--app-muted);
+}
+
+.clock-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 5.5rem;
+    padding: 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    background: var(--app-surface);
+    box-shadow: 0 8px 20px rgba(21, 34, 56, 0.05);
+}
+
+.clock-panel-active {
+    border-color: rgba(15, 138, 95, 0.24);
+    background: linear-gradient(0deg, #f4fbf8, #ffffff);
+}
+
+.clock-panel-main {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+}
+
+.clock-panel-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 8px;
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+    font-size: 1.25rem;
+}
+
+.clock-panel-active .clock-panel-icon {
+    color: var(--app-success);
+    background: #eaf8f2;
+}
+
+.clock-panel-label {
+    color: var(--app-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.clock-panel-value {
+    color: var(--app-text);
+    font-size: 1.45rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
+.metric-tile {
+    min-height: 5.5rem;
+    padding: 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    background: var(--app-surface);
+    box-shadow: 0 8px 20px rgba(21, 34, 56, 0.05);
+}
+
+.metric-tile span,
+.metric-tile small {
+    display: block;
+    color: var(--app-muted);
+    font-weight: 650;
+}
+
+.metric-tile strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--app-text);
+    font-size: 1.7rem;
+    line-height: 1.1;
+}
+
+.time-log-table td,
+.time-log-table th {
+    white-space: nowrap;
+}
+
+.team-inline-form {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 14rem;
+}
+
+.team-inline-form .form-select {
+    min-width: 9rem;
+}
+
+.empty-state {
+    display: grid;
+    place-items: center;
+    gap: 0.45rem;
+    min-height: 9rem;
+    color: var(--app-muted);
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 1.8rem;
+    color: var(--app-accent);
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+.app-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.35rem;
+    border-radius: 7px;
+    color: var(--app-text);
+    font-weight: 500;
+}
+
+.app-dropdown-menu .dropdown-item:hover,
+.app-dropdown-menu .dropdown-item:focus {
+    color: var(--app-text);
+    background: #f0f4f8;
+}
+
+.app-dropdown-menu .dropdown-item.active,
+.app-dropdown-menu .dropdown-item:active {
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+}
+
+.app-dropdown-menu .dropdown-divider {
+    margin: 0.4rem 0.25rem;
+}
+
+.app-clock-item {
+    display: flex;
+    align-items: center;
+}
+
+.app-clock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(15, 138, 95, 0.22);
+    border-radius: 8px;
+    color: var(--app-success);
+    background: #eaf8f2;
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.app-clock-pill strong {
+    color: #0b6848;
+    font-variant-numeric: tabular-nums;
+}
+
+.app-user-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.65rem !important;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--app-text);
+}
+
+.app-user-toggle:hover,
+.app-user-toggle:focus {
+    color: var(--app-text);
+    background: #f0f4f8;
+    border-color: var(--app-border);
+}
+
+.app-user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+    font-size: 1.05rem;
+}
+
+.app-user-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.app-user-name {
+    color: var(--app-text);
+    font-weight: 700;
+}
+
+.app-user-role {
+    color: var(--app-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+@media (max-width: 1199.98px) {
+    .app-navbar-container {
+        padding-inline: 1rem;
+    }
+
+    .app-navbar .navbar-collapse {
+        padding-top: 0.85rem;
+    }
+
+    .app-nav-main,
+    .app-nav-actions {
+        align-items: stretch;
+        gap: 0.3rem;
+    }
+
+    .app-nav-actions {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--app-border);
+    }
+
+    .app-nav-link,
+    .app-user-toggle {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .app-clock-pill {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .app-dropdown-menu {
+        box-shadow: none;
+    }
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .clock-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .clock-panel form,
+    .clock-panel button {
+        width: 100%;
+    }
 }
 
 .card {

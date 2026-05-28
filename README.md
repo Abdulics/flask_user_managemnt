@@ -1,6 +1,6 @@
 # Team Manager (Work in Progress)
 
-A Flask-based internal operations system for small teams/companies. Core features: role-based dashboards (Admin/Manager/Employee), employee/user management, tasks, attendance, time tracking (clock in/out), time-off requests with manager→HR workflow, messaging, and paystubs.
+A Flask-based internal operations system for small teams/companies. Core features: role-based dashboards (Admin/Manager/Employee), employee/user management, tasks, attendance, time tracking (clock in/out), time-off requests with manager -> HR workflow, messaging, and paystubs.
 
 > Status: actively evolving. Expect breaking changes; run migrations after pulls.
 
@@ -28,27 +28,60 @@ MAIL_DEFAULT_SENDER=no-reply@example.com
 ```
 3) Initialize/migrate the database (PostgreSQL):
 ```bash
-flask db init        # once per project
-flask db migrate -m "initial setup"
 flask db upgrade
 ```
 4) Seed default admin (must) and sample data (optional):
 ```bash
-flask init-db        # creates admin: admin/admin123 this is must.
-python app.seeds.sample_data.py
+flask init-db        # creates admin: admin/admin123
+python app/seeds/sample_data.py
 ```
 5) Run the app:
 ```bash
 flask run
 ```
 
+## Demo Accounts
+Default admin:
+```text
+admin / admin123
+```
+
+Seeded demo users:
+```text
+sarah_hr / password123
+james_it / password123
+linda_hr / password123
+michael_it / password123
+kevin_sales / password123
+hannah_finance / password123
+```
+
+## Reset Local Demo Database
+This clears the PostgreSQL public schema, rebuilds migrations, recreates the default admin, and reloads demo data:
+```bash
+python -c "from app import create_app, db; from sqlalchemy import text; app=create_app(); app.app_context().push(); db.session.execute(text('DROP SCHEMA IF EXISTS public CASCADE')); db.session.execute(text('CREATE SCHEMA public')); db.session.execute(text('GRANT ALL ON SCHEMA public TO public')); db.session.commit()"
+flask db upgrade
+flask init-db
+python app/seeds/sample_data.py
+```
+
+## Tests
+Run the automated flow checks:
+```bash
+pytest
+```
+
+The tests use a temporary SQLite database and do not touch your PostgreSQL demo database.
+
 ## Features
 - **Auth & Roles**: Admin, Manager, Employee (role stored on Employee; users link to employees).
+- **Change Password**: Authenticated users can update their own password from the user menu.
 - **User/Employee Management**: Admin creates employees (must assign a manager), users self-register to link to their employee.
-- **Tasks**: Managers/Admins assign tasks; employees manage their own tasks.
-- **Attendance**: Employees mark daily status; managers/admins can view team attendance.
+- **Teams**: Admins, managers, and HR can manage team structure; employees are assigned into teams.
+- **Tasks**: Admins assign tasks broadly; managers assign tasks to their own team members; employees manage their own tasks.
+- **Attendance**: Employees mark daily status; managers/admins/HR can view team attendance.
 - **Time Tracking**: Clock in/out with live timers in navbar and dashboards; personal time log.
-- **Time Off**: Employee submits → Manager approves/denies → HR approves/denies; HR queue for manager-approved requests; notifications via internal messages.
+- **Time Off**: Employee submits -> Manager approves/denies -> HR approves/denies; HR queue for manager-approved requests; notifications via internal messages.
 - **Messaging**: Internal inbox/sent/compose/reply.
 - **Paystubs**: Admin creates paystubs; employees view their own.
 

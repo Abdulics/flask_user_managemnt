@@ -22,6 +22,7 @@ class Employee(db.Model):
     emergency_contact = db.Column(db.String(100))
     emergency_phone = db.Column(db.String(20))
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)
     manager_id = db.Column(db.Integer, db.ForeignKey('employees.id'), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -29,6 +30,7 @@ class Employee(db.Model):
     user = db.relationship('User', back_populates='employee', uselist=False)
     addresses = db.relationship('Address', backref='employee', lazy=True)
     department = db.relationship('Department', back_populates='employees')
+    team = db.relationship('Team', back_populates='members', foreign_keys=[team_id])
     manager = db.relationship('Employee', remote_side=[id], backref='subordinates')
 
     @property
@@ -47,9 +49,11 @@ class Employee(db.Model):
             "email": self.email,
             "role": self.role.value if self.role else None,
             "department": self.department.name if self.department else None,
+            "team": self.team.name if self.team else None,
             "position": self.position,
             "hire_date": self.hire_date.isoformat() if self.hire_date else None,
             "salary": self.salary,
             "manager_id": self.manager_id,
+            "team_id": self.team_id,
             "addresses": [addr.to_dict() for addr in self.addresses],
         }

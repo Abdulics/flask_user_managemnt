@@ -22,6 +22,8 @@ venv.bak/
 instance/
 *.db
 *.sqlite3
+migrations/**/__pycache__/
+migrations/**/*.py[cod]
 
 # Logs
 *.log
@@ -93,7 +95,6 @@ app/static/js/*.map
 config.json
 secrets.json
 
-# Ignore local testing scripts or scratch files
-test_*.py
+# Ignore local scratch files
 scratch/
 # End of .gitignore

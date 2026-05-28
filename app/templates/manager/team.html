@@ -11,13 +11,25 @@
                 {% if subordinates %}
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead><tr><th>Name</th><th>Position</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Position</th><th>Department</th><th>Team</th><th>Email</th><th>Actions</th></tr></thead>
                         <tbody>
                             {% for employee in subordinates %}
                             <tr>
                                 <td>{{ employee.full_name }}</td>
                                 <td>{{ employee.position or 'N/A' }}</td>
                                 <td>{{ employee.department.name if employee.department else 'N/A' }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('admin.assign_employee_team', id=employee.id) }}" class="team-inline-form">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <select class="form-select form-select-sm" name="team_id" aria-label="Assign team">
+                                            <option value="">No Team</option>
+                                            {% for team in teams %}
+                                            <option value="{{ team.id }}" {% if employee.team_id == team.id %}selected{% endif %}>{{ team.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Save</button>
+                                    </form>
+                                </td>
                                 <td>{{ employee.email }}</td>
                                 <td>
                                     {% if employee.user %}

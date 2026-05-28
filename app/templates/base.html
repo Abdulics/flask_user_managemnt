@@ -10,105 +10,162 @@
 </head>
 <body>
     {% if current_user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
-                <i class="bi bi-people-fill"></i> Team Manager
+    {% set endpoint = request.endpoint or '' %}
+    {% set role = current_user.role_name %}
+    {% set is_admin = role == 'admin' %}
+    {% set is_manager = role in ['manager', 'admin'] %}
+    {% set is_hr = current_user.employee and current_user.employee.department and current_user.employee.department.name|lower == 'human resources' %}
+    {% set dashboard_active = endpoint in ['main.dashboard', 'dashboard.index', 'admin.admin_dashboard', 'manager.manager_dashboard', 'employee.employee_dashboard'] %}
+    {% set tasks_active = endpoint.startswith('tasks.') %}
+    {% set timeoff_manage_active = endpoint in ['timeoff.hr_queue', 'timeoff.review_team_requests', 'timeoff.act_on_request'] %}
+    {% set timeoff_active = endpoint.startswith('timeoff.') and not timeoff_manage_active %}
+    {% set messages_active = endpoint.startswith('messages.') %}
+    {% set work_active = endpoint.startswith('attendance.') or endpoint.startswith('time_tracking.') or endpoint.startswith('paystubs.') %}
+    {% set manage_active = (endpoint.startswith('admin.') and endpoint != 'admin.admin_dashboard') or (endpoint.startswith('manager.') and endpoint != 'manager.manager_dashboard') or timeoff_manage_active %}
+
+    <nav class="navbar navbar-expand-xl navbar-light app-navbar" aria-label="Primary navigation">
+        <div class="container-fluid app-navbar-container">
+            <a class="navbar-brand app-brand" href="{{ url_for('main.dashboard') }}">
+                <span class="app-brand-icon"><i class="bi bi-people-fill"></i></span>
+                <span>Team Manager</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler app-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav app-nav-main me-xl-auto mb-2 mb-xl-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                        <a class="nav-link app-nav-link {% if dashboard_active %}active{% endif %}" href="{{ url_for('main.dashboard') }}" {% if dashboard_active %}aria-current="page"{% endif %}>
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
-                    
-                    {% if current_user.role_name == 'admin' %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-shield-lock"></i> Admin
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('admin.list_employees') }}">Employees</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin.list_users') }}">Users</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin.list_departments') }}">Departments</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin.list_teams') }}">Teams</a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                    
-                    {% if current_user.role_name in ['manager', 'admin'] %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('manager.view_team') }}">
-                            <i class="bi bi-people"></i> My Team
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('tasks.my_tasks') }}">
+                        <a class="nav-link app-nav-link {% if tasks_active %}active{% endif %}" href="{{ url_for('tasks.my_tasks') }}" {% if tasks_active %}aria-current="page"{% endif %}>
                             <i class="bi bi-list-task"></i> Tasks
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('attendance.view_or_mark_attendance') }}">
-                            <i class="bi bi-clipboard-check"></i> Attendance
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('timeoff.my_timeoff') }}">
+                        <a class="nav-link app-nav-link {% if timeoff_active %}active{% endif %}" href="{{ url_for('timeoff.my_timeoff') }}" {% if timeoff_active %}aria-current="page"{% endif %}>
                             <i class="bi bi-calendar-event"></i> Time Off
                         </a>
                     </li>
-                    {% if current_user.role_name in ['admin', 'manager'] and current_user.employee and current_user.employee.department and current_user.employee.department.name|lower == 'human resources' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('timeoff.hr_queue') }}">
-                            <i class="bi bi-people-fill"></i> HR Queue
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('paystubs.my_paystubs') }}">
-                            <i class="bi bi-receipt"></i> Paystubs
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('time_tracking.log') }}">
-                            <i class="bi bi-clock-history"></i> Time Log
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('messages.inbox') }}">
+                        <a class="nav-link app-nav-link {% if messages_active %}active{% endif %}" href="{{ url_for('messages.inbox') }}" {% if messages_active %}aria-current="page"{% endif %}>
                             <i class="bi bi-envelope"></i> Messages
                             {% set unread = current_user.received_messages.filter_by(is_read=False).count() %}
                             {% if unread > 0 %}
-                            <span class="badge bg-danger">{{ unread }}</span>
+                            <span class="app-nav-count">{{ unread }}</span>
                             {% endif %}
                         </a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link app-nav-link dropdown-toggle {% if work_active %}active{% endif %}" href="#" id="workDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-briefcase"></i> Work
+                        </a>
+                        <ul class="dropdown-menu app-dropdown-menu" aria-labelledby="workDropdown">
+                            <li>
+                                <a class="dropdown-item {% if endpoint.startswith('attendance.') %}active{% endif %}" href="{{ url_for('attendance.view_or_mark_attendance') }}">
+                                    <i class="bi bi-clipboard-check"></i> Attendance
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if endpoint.startswith('time_tracking.') %}active{% endif %}" href="{{ url_for('time_tracking.log') }}">
+                                    <i class="bi bi-clock-history"></i> Time Log
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if endpoint.startswith('paystubs.') %}active{% endif %}" href="{{ url_for('paystubs.my_paystubs') }}">
+                                    <i class="bi bi-receipt"></i> Paystubs
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% if is_admin or is_manager or is_hr %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link app-nav-link dropdown-toggle {% if manage_active %}active{% endif %}" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-sliders"></i> Manage
+                        </a>
+                        <ul class="dropdown-menu app-dropdown-menu" aria-labelledby="manageDropdown">
+                            {% if is_manager %}
+                            <li>
+                                <a class="dropdown-item {% if endpoint.startswith('manager.') and endpoint != 'manager.manager_dashboard' %}active{% endif %}" href="{{ url_for('manager.view_team') }}">
+                                    <i class="bi bi-people"></i> My Team
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if is_admin %}
+                            {% if is_manager %}<li><hr class="dropdown-divider"></li>{% endif %}
+                            <li>
+                                <a class="dropdown-item {% if endpoint == 'admin.list_employees' or endpoint in ['admin.create_employee', 'admin.edit_employee'] %}active{% endif %}" href="{{ url_for('admin.list_employees') }}">
+                                    <i class="bi bi-person-badge"></i> Employees
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if endpoint in ['admin.list_users', 'admin.edit_user'] %}active{% endif %}" href="{{ url_for('admin.list_users') }}">
+                                    <i class="bi bi-person-check"></i> Users
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if endpoint in ['admin.list_departments', 'admin.create_department'] %}active{% endif %}" href="{{ url_for('admin.list_departments') }}">
+                                    <i class="bi bi-building"></i> Departments
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if is_admin or is_manager or is_hr %}
+                            <li>
+                                <a class="dropdown-item {% if endpoint in ['admin.list_teams', 'admin.create_team'] %}active{% endif %}" href="{{ url_for('admin.list_teams') }}">
+                                    <i class="bi bi-diagram-3"></i> Teams
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if is_hr %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {% if endpoint == 'timeoff.hr_queue' %}active{% endif %}" href="{{ url_for('timeoff.hr_queue') }}">
+                                    <i class="bi bi-inboxes"></i> HR Queue
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    {% endif %}
                 </ul>
                 
-                <ul class="navbar-nav">
+                <ul class="navbar-nav app-nav-actions ms-xl-auto mb-2 mb-xl-0">
                     {% if active_time_entry %}
-                    <li class="nav-item d-flex align-items-center me-3">
-                        <span class="badge bg-success">
-                            Clocked in · <span id="nav-timer" data-start="{{ active_time_entry.clock_in.isoformat() }}Z">--:--:--</span>
+                    <li class="nav-item app-clock-item">
+                        <span class="app-clock-pill">
+                            <i class="bi bi-record-circle"></i>
+                            <span>Clocked in</span>
+                            <strong id="nav-timer" data-start="{{ active_time_entry.clock_in|utc_iso }}">--:--:--</strong>
                         </span>
                     </li>
                     {% endif %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
-                            <span class="badge bg-secondary">{{ current_user.role_name|capitalize if current_user.role_name else 'N/A' }}</span>
+                        <a class="nav-link app-user-toggle dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="app-user-avatar"><i class="bi bi-person-circle"></i></span>
+                            <span class="app-user-meta">
+                                <span class="app-user-name">{{ current_user.username }}</span>
+                                <span class="app-user-role">{{ role|capitalize if role else 'N/A' }}</span>
+                            </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('employee.profile') }}">Profile</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end app-dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('employee.profile') }}">
+                                    <i class="bi bi-person"></i> Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                    <i class="bi bi-key"></i> Change Password
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>

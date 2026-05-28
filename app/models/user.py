@@ -65,7 +65,7 @@ class User(UserMixin, db.Model, TimestampMixin):
 
     def touch_last_login(self) -> None:
         """Set last_login to now (useful after successful auth)."""
-        self.last_login = datetime.now(datetime.timezone.utc)
+        self.last_login = datetime.now(timezone.utc)
 
     @property
     def role(self) -> Optional[Role]:
@@ -115,6 +115,6 @@ class User(UserMixin, db.Model, TimestampMixin):
             if field in data:
                 setattr(self, field, data[field])
         if "metadata" in data:
-            self.metadata = data["metadata"]
+            self.user_metadata = data["metadata"]
         if set_password and "password" in data:
             self.password = data["password"]

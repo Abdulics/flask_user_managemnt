@@ -1,5 +1,6 @@
 from datetime import datetime, date, timezone
 from enum import Enum as PyEnum
+from typing import Optional
 from app import db
 
 class TimestampMixin:
@@ -50,7 +51,7 @@ class Attendance(db.Model, TimestampMixin):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
-    def mark(self, status: AttendanceStatus, note: str | None = None):
+    def mark(self, status: AttendanceStatus, note: Optional[str] = None):
         """
         Mark attendance for this record. Call session.commit() externally.
         """
@@ -59,7 +60,7 @@ class Attendance(db.Model, TimestampMixin):
         self.status = status
         if note is not None:
             self.note = note
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     @classmethod
     def for_user_on_date(cls, user_id: int, target_date: date, create_if_missing: bool = False): # type: ignore

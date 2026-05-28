@@ -65,14 +65,23 @@
                             </select>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="team_id" class="form-label">Team</label>
+                        <select class="form-select" id="team_id" name="team_id">
+                            <option value="">No Team</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}" {% if employee.team_id == team.id %}selected{% endif %}>{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="role" class="form-label">Role Type</label>
                             <select class="form-select" id="role" name="role" required>
                                 <option value="" disabled {% if not employee.role %}selected{% endif %}>Select Role</option>
-                                <option value="ADMIN" {% if employee.role == 'ADMIN' %}selected{% endif %}>Admin</option>
-                                <option value="MANAGER" {% if employee.role == 'MANAGER' %}selected{% endif %}>Manager</option>
-                                <option value="EMPLOYEE" {% if employee.role == 'EMPLOYEE' %}selected{% endif %}>Employee</option>
+                                <option value="ADMIN" {% if employee.role.name == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                <option value="MANAGER" {% if employee.role.name == 'MANAGER' %}selected{% endif %}>Manager</option>
+                                <option value="EMPLOYEE" {% if employee.role.name == 'EMPLOYEE' %}selected{% endif %}>Employee</option>
                             </select>
                         </div>
 

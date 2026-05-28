@@ -17,6 +17,12 @@ def _get_subordinate_user_ids(manager_employee_id: int) -> list[int]:
     ]
 
 
+def _is_hr(user) -> bool:
+    if not user.employee or not user.employee.department:
+        return False
+    return user.employee.department.name.lower() == "human resources"
+
+
 @attendance_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def view_or_mark_attendance():
@@ -39,10 +45,13 @@ def view_or_mark_attendance():
 
 @attendance_bp.route('/team')
 @login_required
-@role_required(Role.ADMIN, Role.MANAGER)
 def team_attendance():
     """Managers/Admins can review team attendance."""
-    if current_user.is_admin:
+    if not (current_user.is_admin or current_user.is_manager or _is_hr(current_user)):
+        flash('Access denied. Team attendance is for managers, HR, and admins.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    if current_user.is_admin or _is_hr(current_user):
         records = Attendance.query.order_by(Attendance.date.desc()).limit(200).all()
     else:
         subordinate_ids = _get_subordinate_user_ids(current_user.employee.id)

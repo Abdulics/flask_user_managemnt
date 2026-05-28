@@ -65,6 +65,16 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="team_id" class="form-label">Team</label>
+                        <select class="form-select" id="team_id" name="team_id">
+                            <option value="">No Team</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">

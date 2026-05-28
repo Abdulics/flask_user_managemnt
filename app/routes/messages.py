@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.user import User
 from app.models.message import Message
-from datetime import datetime
 
 message_bp = Blueprint('messages', __name__, url_prefix='/messages')
 
@@ -30,6 +29,11 @@ def compose():
         recipient_id = request.form.get('recipient_id')
         subject = request.form.get('subject')
         body = request.form.get('body')
+
+        recipient = db.session.get(User, int(recipient_id)) if recipient_id else None
+        if not recipient:
+            flash('Please select a valid recipient.', 'danger')
+            return redirect(url_for('messages.compose'))
         
         message = Message(
             subject=subject,
@@ -47,14 +51,14 @@ def compose():
             db.session.rollback()
             flash(f'Error sending message: {str(e)}', 'danger')
     
-    users = User.query.filter(User.id != current_user.id, User.is_active == True).all()
+    users = User.query.filter(User.id != current_user.id).order_by(User.username).all()
     return render_template('messages/compose.html', users=users)
 
 
 @message_bp.route('/<int:id>')
 @login_required
 def view_message(id):
-    message = Message.query.get_or_404(id)
+    message = db.get_or_404(Message, id)
     
     if message.recipient_id != current_user.id and message.sender_id != current_user.id:
         flash('You do not have permission to view this message.', 'danger')
@@ -70,7 +74,7 @@ def view_message(id):
 @message_bp.route('/<int:id>/reply', methods=['GET', 'POST'])
 @login_required
 def reply(id):
-    original_message = Message.query.get_or_404(id)
+    original_message = db.get_or_404(Message, id)
     
     if original_message.recipient_id != current_user.id:
         flash('You can only reply to messages sent to you.', 'danger')

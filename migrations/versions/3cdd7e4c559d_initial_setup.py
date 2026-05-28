@@ -1,8 +1,8 @@
-"""Initial db set up
+"""initial setup
 
-Revision ID: 5fb6cf01cad8
+Revision ID: 3cdd7e4c559d
 Revises: 
-Create Date: 2025-11-21 13:53:44.319669
+Create Date: 2026-05-26 20:48:29.583210
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5fb6cf01cad8'
+revision = '3cdd7e4c559d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -63,6 +63,26 @@ def upgrade():
     sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('paystubs',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('employee_id', sa.Integer(), nullable=False),
+    sa.Column('pay_period_start', sa.Date(), nullable=False),
+    sa.Column('pay_period_end', sa.Date(), nullable=False),
+    sa.Column('gross_pay', sa.Numeric(precision=12, scale=2), nullable=False),
+    sa.Column('taxes', sa.Numeric(precision=12, scale=2), nullable=False),
+    sa.Column('deductions', sa.Numeric(precision=12, scale=2), nullable=False),
+    sa.Column('net_pay', sa.Numeric(precision=12, scale=2), nullable=False),
+    sa.Column('file_path', sa.String(length=1024), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('issued_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('paystubs', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_paystubs_employee_id'), ['employee_id'], unique=False)
+
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
@@ -97,7 +117,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('status', sa.Enum('present', 'absent', 'late', 'excused', name='attendance_status'), nullable=False),
+    sa.Column('status', sa.Enum('PRESENT', 'ABSENT', 'LATE', 'EXCUSED', name='attendance_status'), nullable=False),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -126,9 +146,9 @@ def upgrade():
     sa.Column('assigned_to_id', sa.Integer(), nullable=False),
     sa.Column('created_by_id', sa.Integer(), nullable=False),
     sa.Column('due_date', sa.DateTime(), nullable=True),
+    sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['assigned_to_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -143,40 +163,26 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    with op.batch_alter_table('time_entries', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_time_entries_user_id'), ['user_id'], unique=False)
+
     op.create_table('timeoffs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.Enum('VACATION', 'SICK', 'UNPAID', 'OTHER', name='timeofftype'), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'MANAGER_APPROVED', 'APPROVED', 'DENIED', 'CANCELLED', name='timeoffstatus'), nullable=False),
     sa.Column('manager_id', sa.Integer(), nullable=True),
     sa.Column('hr_id', sa.Integer(), nullable=True),
     sa.Column('manager_decision_at', sa.DateTime(), nullable=True),
     sa.Column('hr_decision_at', sa.DateTime(), nullable=True),
+    sa.Column('type', sa.Enum('VACATION', 'SICK', 'UNPAID', 'OTHER', name='timeofftype'), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'MANAGER_APPROVED', 'APPROVED', 'DENIED', 'CANCELLED', name='timeoffstatus'), nullable=False),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=False),
     sa.Column('reason', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['manager_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['hr_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('paystubs',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('pay_period_start', sa.Date(), nullable=False),
-    sa.Column('pay_period_end', sa.Date(), nullable=False),
-    sa.Column('gross_pay', sa.Numeric(precision=12, scale=2), nullable=False),
-    sa.Column('taxes', sa.Numeric(precision=12, scale=2), nullable=False),
-    sa.Column('deductions', sa.Numeric(precision=12, scale=2), nullable=False),
-    sa.Column('net_pay', sa.Numeric(precision=12, scale=2), nullable=False),
-    sa.Column('file_path', sa.String(length=1024), nullable=True),
-    sa.Column('notes', sa.Text(), nullable=True),
-    sa.Column('issued_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['manager_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
@@ -184,9 +190,11 @@ def upgrade():
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('time_entries')
-    op.drop_table('paystubs')
     op.drop_table('timeoffs')
+    with op.batch_alter_table('time_entries', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_time_entries_user_id'))
+
+    op.drop_table('time_entries')
     op.drop_table('tasks')
     op.drop_table('messages')
     op.drop_table('attendances')
@@ -196,6 +204,10 @@ def downgrade():
 
     op.drop_table('user')
     op.drop_table('team')
+    with op.batch_alter_table('paystubs', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_paystubs_employee_id'))
+
+    op.drop_table('paystubs')
     op.drop_table('addresses')
     with op.batch_alter_table('employees', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_employees_email'))

@@ -1,4 +1,5 @@
 import click
+from datetime import date, timezone
 from flask import Flask, render_template
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
@@ -17,7 +18,6 @@ def init_db_command():
     from app.models.user import User
     from app.models.employees import Employee, Role
     from app.models.department import Department
-    from datetime import date
 
     db.create_all()
     if not User.query.filter_by(username='admin').first():
@@ -54,10 +54,12 @@ def init_db_command():
         click.echo("Admin already exists. Skipping creation.")
 
 
-def create_app():
+def create_app(config_overrides=None):
     app = Flask(__name__)
     app.config.from_object(Config)
-    csrf = CSRFProtect(app)
+    if config_overrides:
+        app.config.update(config_overrides)
+    csrf = CSRFProtect()
 
     db.init_app(app)
     csrf.init_app(app)
@@ -119,6 +121,15 @@ def create_app():
         active_entry = TimeEntry.query.filter_by(user_id=current_user.id, clock_out=None).order_by(TimeEntry.clock_in.desc()).first()
         return {"active_time_entry": active_entry}
 
+    @app.template_filter("utc_iso")
+    def utc_iso(value):
+        if value is None:
+            return ""
+        if value.tzinfo is None:
+            return value.isoformat()
+        value = value.astimezone(timezone.utc)
+        return value.isoformat().replace("+00:00", "Z")
+
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('404.html'), 404
@@ -131,6 +142,6 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         from app.models.user import User
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     return app

@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 basedir = os.path.abspath(os.path.dirname(__file__))
-print('basedir:', basedir)
 load_dotenv(os.path.join(basedir, '.env'))
 
 class Config:

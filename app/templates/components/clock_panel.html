@@ -1,0 +1,31 @@
+<div class="clock-panel {% if active_time_entry %}clock-panel-active{% endif %}">
+    <div class="clock-panel-main">
+        <span class="clock-panel-icon">
+            <i class="bi {% if active_time_entry %}bi-record-circle{% else %}bi-clock{% endif %}"></i>
+        </span>
+        <div>
+            <div class="clock-panel-label">
+                {% if active_time_entry %}Clocked in{% else %}Not clocked in{% endif %}
+            </div>
+            <div class="clock-panel-value">
+                {% if active_time_entry %}
+                <span id="dash-timer" data-start="{{ active_time_entry.clock_in|utc_iso }}">--:--:--</span>
+                {% else %}
+                <span>Ready to start</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <form method="POST" action="{{ url_for('time_tracking.clock_out' if active_time_entry else 'time_tracking.clock_in') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        {% if active_time_entry %}
+        <button class="btn btn-outline-danger btn-sm btn-icon" type="submit">
+            <i class="bi bi-stop-fill"></i> Clock Out
+        </button>
+        {% else %}
+        <button class="btn btn-success btn-sm btn-icon" type="submit">
+            <i class="bi bi-play-fill"></i> Clock In
+        </button>
+        {% endif %}
+    </form>
+</div>

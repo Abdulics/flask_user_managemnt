@@ -4,6 +4,14 @@ from app import db
 
 class TimeEntry(db.Model):
     __tablename__ = "time_entries"
+    __table_args__ = (
+        db.Index(
+            "uix_time_entries_one_active_per_user",
+            "user_id",
+            unique=True,
+            postgresql_where=db.text("clock_out IS NULL"),
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
@@ -20,6 +28,7 @@ class TimeEntry(db.Model):
 
     def clock_out_now(self):
         self.clock_out = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def __repr__(self):
         return f"<TimeEntry id={self.id} user_id={self.user_id} active={self.is_active}>"

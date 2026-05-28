@@ -13,7 +13,10 @@ paystub_bp = Blueprint('paystubs', __name__, url_prefix='/paystubs')
 @login_required
 def my_paystubs():
     """Employees view their own paystubs."""
-    paystubs = Paystub.query.filter_by(employee_id=current_user.id).order_by(Paystub.pay_period_end.desc()).all()
+    if not current_user.employee:
+        flash('Your account is not linked to an employee record.', 'warning')
+        return render_template('paystubs/index.html', paystubs=[])
+    paystubs = Paystub.query.filter_by(employee_id=current_user.employee.id).order_by(Paystub.pay_period_end.desc()).all()
     return render_template('paystubs/index.html', paystubs=paystubs)
 
 
@@ -24,7 +27,7 @@ def create_paystub():
     """Admins can generate paystubs for any user."""
     form = PaystubForm()
     form.employee_id.choices = [
-        (emp.user.id, f"{emp.full_name} ({emp.user.username})") for emp in Employee.query.all() if emp.user
+        (emp.id, f"{emp.full_name} - {emp.role.value} ({emp.user.username})") for emp in Employee.query.order_by(Employee.last_name, Employee.first_name).all() if emp.user
     ]
 
     if form.validate_on_submit():

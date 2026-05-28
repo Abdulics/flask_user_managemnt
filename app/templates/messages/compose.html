@@ -13,7 +13,7 @@
                         <select class="form-select" id="recipient_id" name="recipient_id" required>
                             <option value="">Select Recipient</option>
                             {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                            <option value="{{ user.id }}">{{ user.username }} - {{ user.role_name or 'employee' }} ({{ user.email }})</option>
                             {% endfor %}
                         </select>
                     </div>

@@ -26,19 +26,23 @@
                                     {% if not is_hr and r.status == r.status.PENDING %}
                                     <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='approve') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="stage" value="manager"/>
                                         <button class="btn btn-sm btn-success">Send to HR</button>
                                     </form>
                                     <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='deny') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="stage" value="manager"/>
                                         <button class="btn btn-sm btn-danger">Deny</button>
                                     </form>
                                     {% elif is_hr and r.status == r.status.MANAGER_APPROVED %}
                                     <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='approve') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="stage" value="hr"/>
                                         <button class="btn btn-sm btn-success">Approve</button>
                                     </form>
                                     <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='deny') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="stage" value="hr"/>
                                         <button class="btn btn-sm btn-danger">Deny</button>
                                     </form>
                                     {% else %}

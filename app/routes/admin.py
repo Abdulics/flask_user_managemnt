@@ -1,10 +1,7 @@
-from datetime import datetime, timezone
-from flask import Blueprint, render_template, flash, redirect, url_for, request
-from flask_login import login_required
-from app import db
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 from datetime import datetime
+from app import db
 from app.models.address import Address
 from app.models.department import Department
 from app.models.employees import Employee, Role
@@ -12,19 +9,32 @@ from app.models.team import Team
 from app.models.user import User
 from app.utils.decorators import role_required
 
-admin_admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-@admin_admin_bp.route('/manage-users')
+
+def _is_hr(user) -> bool:
+    if not user.employee or not user.employee.department:
+        return False
+    return user.employee.department.name.lower() == 'human resources'
+
+
+def _can_manage_teams(user) -> bool:
+    return user.is_admin or user.is_manager or _is_hr(user)
+
+
+def _require_team_manager():
+    if not _can_manage_teams(current_user):
+        flash('Access denied. Team management is for admins, managers, and HR.', 'danger')
+        return False
+    return True
+
+
+@admin_bp.route('/manage-users')
 @login_required
 @role_required(Role.ADMIN)
 def manage_users():
-    from flask import url_for
-    print(url_for('static', filename='css/style.css'))
     users = db.session.execute(db.select(User).order_by(User.username)).scalars().all()
     return render_template('admin/manage_users.html', users=users)
-
-
-admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
 @admin_bp.route('/dashboard')
@@ -79,6 +89,7 @@ def create_employee():
             emergency_contact=request.form.get('emergency_contact'),
             emergency_phone=request.form.get('emergency_phone'),
             department_id=int(request.form.get('department_id')) if request.form.get('department_id') else None,
+            team_id=int(request.form.get('team_id')) if request.form.get('team_id') else None,
             manager_id=int(manager_id_raw) if manager_id_raw else None,
             role=Role[role_value.upper()] if role_value else Role.EMPLOYEE
         )
@@ -108,14 +119,15 @@ def create_employee():
     
     departments = Department.query.all()
     managers = Employee.query.all()
-    return render_template('admin/create_employee.html', departments=departments, managers=managers)
+    teams = Team.query.order_by(Team.name).all()
+    return render_template('admin/create_employee.html', departments=departments, managers=managers, teams=teams)
 
 
 @admin_bp.route('/employees/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 @role_required(Role.ADMIN)
 def edit_employee(id):
-    employee = Employee.query.get_or_404(id)
+    employee = db.get_or_404(Employee, id)
     
     if request.method == 'POST':
         manager_id_raw = request.form.get('manager_id')
@@ -135,6 +147,7 @@ def edit_employee(id):
         employee.emergency_contact = request.form.get('emergency_contact')
         employee.emergency_phone = request.form.get('emergency_phone')
         employee.department_id = int(request.form.get('department_id')) if request.form.get('department_id') else None
+        employee.team_id = int(request.form.get('team_id')) if request.form.get('team_id') else None
         employee.manager_id = int(manager_id_raw) if manager_id_raw else None
         employee.role = Role[request.form.get('role').upper()] if request.form.get('role') else employee.role
         
@@ -148,14 +161,15 @@ def edit_employee(id):
     
     departments = Department.query.all()
     managers = Employee.query.filter(Employee.id != id).all()
-    return render_template('admin/edit_employee.html', employee=employee, departments=departments, managers=managers)
+    teams = Team.query.order_by(Team.name).all()
+    return render_template('admin/edit_employee.html', employee=employee, departments=departments, managers=managers, teams=teams)
 
 
 @admin_bp.route('/employees/<int:id>/delete', methods=['POST'])
 @login_required
 @role_required(Role.ADMIN)
 def delete_employee(id):
-    employee = Employee.query.get_or_404(id)
+    employee = db.get_or_404(Employee, id)
     
     try:
         if employee.user:
@@ -182,7 +196,7 @@ def list_users():
 @login_required
 @role_required(Role.ADMIN)
 def edit_user(id):
-    user = User.query.get_or_404(id)
+    user = db.get_or_404(User, id)
     
     if request.method == 'POST':
         user.username = request.form.get('username')
@@ -236,16 +250,18 @@ def create_department():
 
 @admin_bp.route('/teams')
 @login_required
-@role_required(Role.ADMIN)
 def list_teams():
-    teams = Team.query.all()
+    if not _require_team_manager():
+        return redirect(url_for('main.dashboard'))
+    teams = Team.query.order_by(Team.name).all()
     return render_template('admin/teams.html', teams=teams)
 
 
 @admin_bp.route('/teams/create', methods=['GET', 'POST'])
 @login_required
-@role_required(Role.ADMIN)
 def create_team():
+    if not _require_team_manager():
+        return redirect(url_for('main.dashboard'))
     if request.method == 'POST':
         team = Team(
             name=request.form.get('name'),
@@ -266,3 +282,64 @@ def create_team():
     departments = Department.query.all()
     employees = Employee.query.all()
     return render_template('admin/create_team.html', departments=departments, employees=employees)
+
+
+@admin_bp.route('/teams/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_team(id):
+    if not _require_team_manager():
+        return redirect(url_for('main.dashboard'))
+
+    team = db.get_or_404(Team, id)
+    if request.method == 'POST':
+        team.name = request.form.get('name')
+        team.description = request.form.get('description')
+        team.department_id = int(request.form.get('department_id')) if request.form.get('department_id') else None
+        team.lead_id = int(request.form.get('lead_id')) if request.form.get('lead_id') else None
+        db.session.commit()
+        flash(f'Team {team.name} updated successfully.', 'success')
+        return redirect(url_for('admin.list_teams'))
+
+    departments = Department.query.order_by(Department.name).all()
+    employees = Employee.query.order_by(Employee.last_name, Employee.first_name).all()
+    return render_template('admin/edit_team.html', team=team, departments=departments, employees=employees)
+
+
+@admin_bp.route('/teams/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_team(id):
+    if not _require_team_manager():
+        return redirect(url_for('main.dashboard'))
+
+    team = db.get_or_404(Team, id)
+    if team.members:
+        flash('Move employees out of this team before deleting it.', 'warning')
+        return redirect(url_for('admin.list_teams'))
+
+    db.session.delete(team)
+    db.session.commit()
+    flash(f'Team {team.name} deleted successfully.', 'success')
+    return redirect(url_for('admin.list_teams'))
+
+
+@admin_bp.route('/employees/<int:id>/team', methods=['POST'])
+@login_required
+def assign_employee_team(id):
+    if not _require_team_manager():
+        return redirect(url_for('main.dashboard'))
+
+    employee = db.get_or_404(Employee, id)
+    team_id = request.form.get('team_id')
+
+    if current_user.is_manager and not (current_user.is_admin or _is_hr(current_user)):
+        if not current_user.employee or employee.manager_id != current_user.employee.id:
+            flash('Managers can only assign their own team members.', 'danger')
+            return redirect(url_for('manager.view_team'))
+
+    employee.team_id = int(team_id) if team_id else None
+    db.session.commit()
+    flash(f'{employee.full_name} team assignment updated.', 'success')
+
+    if current_user.is_manager and not current_user.is_admin:
+        return redirect(url_for('manager.view_team'))
+    return redirect(url_for('admin.list_employees'))

@@ -1,45 +1,69 @@
 {% extends "base.html" %}
 {% block title %}Time Log{% endblock %}
 {% block content %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="mb-0"><i class="bi bi-clock-history"></i> My Time Log</h1>
-            <div class="d-flex gap-2">
-                <form method="POST" action="{{ url_for('time_tracking.clock_in') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button class="btn btn-success" {% if active_time_entry %}disabled{% endif %}>
-                        <i class="bi bi-play-fill"></i> Clock In
-                    </button>
-                </form>
-                <form method="POST" action="{{ url_for('time_tracking.clock_out') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button class="btn btn-danger" {% if not active_time_entry %}disabled{% endif %}>
-                        <i class="bi bi-stop-fill"></i> Clock Out
-                    </button>
-                </form>
-            </div>
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-clock-history"></i> My Time Log</h1>
+        <p>Track active work sessions and review recent entries.</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        {% include "components/clock_panel.html" %}
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-tile">
+            <span>Today</span>
+            <strong>{{ today_hours }}</strong>
+            <small>hours recorded</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-tile">
+            <span>Last 7 Days</span>
+            <strong>{{ week_hours }}</strong>
+            <small>hours recorded</small>
         </div>
     </div>
 </div>
-<div class="row">
+
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Recent Sessions</h5>
+                <span class="text-muted small">{{ entries|length }} shown · {{ completed_count }} completed</span>
+            </div>
             <div class="card-body">
                 {% if entries %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead><tr><th>Clock In</th><th>Clock Out</th><th>Duration (hrs)</th></tr></thead>
+                    <table class="table table-hover align-middle time-log-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Clock In</th>
+                                <th>Clock Out</th>
+                                <th class="text-end">Duration</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for e in entries %}
                             <tr>
+                                <td>
+                                    {% if e.clock_out %}
+                                    <span class="badge text-bg-secondary">Closed</span>
+                                    {% else %}
+                                    <span class="badge text-bg-success">Active</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ e.clock_in.strftime('%Y-%m-%d %H:%M') if e.clock_in else '-' }}</td>
                                 <td>{{ e.clock_out.strftime('%Y-%m-%d %H:%M') if e.clock_out else 'Active' }}</td>
-                                <td>
+                                <td class="text-end">
                                     {% if e.clock_out %}
                                         {{ ((e.clock_out - e.clock_in).total_seconds() / 3600)|round(2) }}
                                     {% else %}
-                                        In progress
+                                        <span id="log-active-duration" data-start="{{ e.clock_in|utc_iso }}">In progress</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -48,7 +72,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">No time entries yet.</p>
+                <div class="empty-state">
+                    <i class="bi bi-clock"></i>
+                    <p>No time entries yet.</p>
+                </div>
                 {% endif %}
             </div>
         </div>

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_required, current_user    
 from app.models.employees import Employee, Role
 from app.models.task import Task
+from app.models.team import Team
 from app.utils.decorators import role_required
 from app import db
 
@@ -14,7 +15,7 @@ manager_bp = Blueprint('manager', __name__, url_prefix='/manager')
 def manager_dashboard():
     if not current_user.employee:
         flash('Manager account not linked to employee record.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('main.dashboard'))
     
     subordinates = Employee.query.filter_by(manager_id=current_user.employee.id).all()
     
@@ -24,9 +25,11 @@ def manager_dashboard():
         Task.status.in_(['pending', 'in_progress'])
     ).count() if subordinate_user_ids else 0
     
+    teams = Team.query.order_by(Team.name).all()
     return render_template('manager/dashboard.html',
                          subordinates=subordinates,
-                         pending_tasks=pending_tasks)
+                         pending_tasks=pending_tasks,
+                         teams=teams)
 
 @manager_bp.route('/team')
 @login_required
@@ -34,17 +37,18 @@ def manager_dashboard():
 def view_team():
     if not current_user.employee:
         flash('Manager account not linked to employee record.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('main.dashboard'))
     
     subordinates = Employee.query.filter_by(manager_id=current_user.employee.id).all()
-    return render_template('manager/team.html', subordinates=subordinates)
+    teams = Team.query.order_by(Team.name).all()
+    return render_template('manager/team.html', subordinates=subordinates, teams=teams)
 
 
 @manager_bp.route('/team/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 @role_required(Role.ADMIN, Role.MANAGER)
 def edit_subordinate(id):
-    employee = Employee.query.get_or_404(id)
+    employee = db.get_or_404(Employee, id)
     
     if not current_user.employee or employee.manager_id != current_user.employee.id:
         flash('You can only edit employees you manage.', 'danger')
