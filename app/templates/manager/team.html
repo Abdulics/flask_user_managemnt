@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% block title %}My Team{% endblock %}
 {% block content %}
-<div class="row mt-4">
-    <div class="col-12"><h1 class="mb-4"><i class="bi bi-people"></i> My Team</h1></div>
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-people"></i> My Team</h1>
+        <p>Manage team assignments and account access for your direct reports.</p>
+    </div>
 </div>
 <div class="row">
     <div class="col-12">
@@ -31,7 +34,7 @@
                                     </form>
                                 </td>
                                 <td>{{ employee.email }}</td>
-                                <td>
+                                <td class="action-cell">
                                     {% if employee.user %}
                                     <a href="{{ url_for('manager.edit_subordinate', id=employee.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a>
                                     {% else %}
@@ -44,7 +47,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">No team members yet.</p>
+                <div class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <p>No team members yet.</p>
+                </div>
                 {% endif %}
             </div>
         </div>

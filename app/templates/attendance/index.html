@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Attendance{% endblock %}
 {% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-clipboard-check"></i> Attendance</h1>
+        <p>Mark today's attendance and review your recent history.</p>
+    </div>
+</div>
 <div class="row mt-4">
     <div class="col-lg-8 offset-lg-2">
         <div class="card mb-3">
@@ -46,7 +52,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">No attendance records yet.</p>
+                <div class="empty-state">
+                    <i class="bi bi-clock-history"></i>
+                    <p>No attendance records yet.</p>
+                </div>
                 {% endif %}
             </div>
         </div>

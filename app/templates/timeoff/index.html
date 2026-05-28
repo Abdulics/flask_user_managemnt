@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Time Off{% endblock %}
 {% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-calendar-event"></i> Time Off</h1>
+        <p>Submit requests and track approvals from manager review through HR.</p>
+    </div>
+</div>
 <div class="row mt-4">
     <div class="col-lg-8 offset-lg-2">
         <div class="card mb-3">
@@ -62,7 +68,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">No requests yet.</p>
+                <div class="empty-state">
+                    <i class="bi bi-calendar2-plus"></i>
+                    <p>No requests yet.</p>
+                </div>
                 {% endif %}
             </div>
         </div>

@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Review Time Off{% endblock %}
 {% block content %}
-<div class="row mt-4">
-    <div class="col-12">
-        <h1 class="mb-4"><i class="bi bi-briefcase"></i> {{ 'HR Time Off Queue' if is_hr else 'Team Time Off' }}</h1>
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-briefcase"></i> {{ 'HR Time Off Queue' if is_hr else 'Team Time Off' }}</h1>
+        <p>{{ 'Approve manager-reviewed requests or decline them from the HR queue.' if is_hr else 'Review team requests before they move to HR.' }}</p>
     </div>
 </div>
 <div class="row">
@@ -22,7 +23,7 @@
                                 <td>{{ r.start_date }} - {{ r.end_date }}</td>
                                 <td><span class="badge bg-secondary">{{ r.status.value|replace('_',' ')|capitalize }}</span></td>
                                 <td>{{ r.reason or '-' }}</td>
-                                <td class="d-flex gap-2">
+                                <td class="action-cell">
                                     {% if not is_hr and r.status == r.status.PENDING %}
                                     <form method="POST" action="{{ url_for('timeoff.act_on_request', request_id=r.id, action='approve') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -55,7 +56,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">No requests to review.</p>
+                <div class="empty-state">
+                    <i class="bi bi-inboxes"></i>
+                    <p>No requests to review.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
